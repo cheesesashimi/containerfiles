@@ -1,0 +1,27 @@
+FROM quay.io/zzlotnik/toolbox:base AS base
+RUN --mount=type=cache,target=/var/cache/dnf,z \
+    --mount=type=cache,target=/root/.cache/pip,z \
+    curl -Lo /tmp/golangci-lint.rpm 'https://github.com/golangci/golangci-lint/releases/download/v1.57.2/golangci-lint-1.57.2-linux-amd64.rpm' && \
+    dnf install --setopt=keepcache=True -y \
+        /tmp/golangci-lint.rpm \
+        ShellCheck \
+        cargo \
+        delve \
+        golang \
+        golang-x-tools-goimports \
+        golang-x-tools-gopls \
+        hadolint \
+        neovim \
+        nodejs \
+        python3 \
+        python3-lsp-server \
+        python3-neovim \
+        rust-analyzer \
+        && \
+    rm /tmp/golangci-lint.rpm
+
+LABEL com.github.containers.toolbox="true" \
+      name="zack-toolbox-container-neovim" \
+      usage="This image is meant to be used with the toolbox(1) command" \
+      summary="Fedora 39-based version of my neovim toolbox container" \
+      maintainer="Zack Zlotnik (zzlotnik@redhat.com)"
