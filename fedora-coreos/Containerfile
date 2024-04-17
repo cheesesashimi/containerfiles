@@ -6,7 +6,6 @@ RUN --mount=type=cache,target=/var/cache/dnf,z \
 
 FROM base AS final
 COPY --from=tools /etc/yum.repos.d /etc/yum.repos.d
-COPY --from=tools /rpms /rpms
 COPY --from=tools /yq/yq /usr/local/bin/yq
 RUN --mount=type=cache,target=/var/cache/rpm-ostree,z \
 	rpm-ostree install -y \
@@ -31,7 +30,6 @@ RUN --mount=type=cache,target=/var/cache/rpm-ostree,z \
 		zsh && \
 	# Not removing these files prevents the eza alias from working
 	rm /etc/profile.d/color*.csh /etc/profile.d/color*.sh && \
-	rm -rf /rpms && \
 	ostree container commit
 
 ARG GIT_REVISION=dirty
