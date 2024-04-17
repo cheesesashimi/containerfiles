@@ -20,7 +20,6 @@ RUN --mount=type=cache,target=/var/cache/rpm-ostree,z \
 		/rpms/chezmoi.rpm \
 		/rpms/dive.rpm \
 		/rpms/golangci-lint.rpm \
-		alacritty \
 		bat \
 		btop \
 		cargo \
