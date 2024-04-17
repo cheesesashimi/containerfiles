@@ -16,6 +16,7 @@ COPY --from=tools /yq/yq /usr/local/bin/yq
 COPY --from=tools /k9s/k9s /usr/local/bin/k9s
 RUN --mount=type=cache,target=/var/cache/rpm-ostree,z \
 	rpm-ostree install -y \
+		/rpms/dive.rpm \
 		bat \
 		btop \
 		curl \
@@ -26,6 +27,7 @@ RUN --mount=type=cache,target=/var/cache/rpm-ostree,z \
 		git \
 		git-delta \
 		gpg \
+		hyperfine \
 		jq \
 		langpacks-en \
 		pinentry \

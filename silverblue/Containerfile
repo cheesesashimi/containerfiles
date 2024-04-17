@@ -37,9 +37,9 @@ RUN --mount=type=cache,target=/var/cache/rpm-ostree,z \
 		golang-x-tools-gopls \
 		gpg \
 		hadolint \
+		hyperfine \
 		jq \
 		kitty \
-		kitty-terminfo \
 		langpacks-en \
 		neovim \
 		nodejs \
