@@ -15,8 +15,8 @@ declare -rA images=(
   ["./toolbox/Containerfile.tools"]="quay.io/zzlotnik/toolbox:tools"
   ["./toolbox/Containerfile.base"]="quay.io/zzlotnik/toolbox:base"
   ["./ocp-ssh-debug/Containerfile"]="quay.io/zzlotnik/testing:ssh-debug-pod"
-  ["./fedora-coreos/Containerfile"]="quay.io/zzlotnik/toolbox:fedora-coreos"
-  ["./silverblue/Containerfile"]="quay.io/zzlotnik/toolbox:silverblue"
+  ["./fedora-coreos/Containerfile"]="quay.io/zzlotnik/os-images:fedora-coreos"
+  ["./silverblue/Containerfile"]="quay.io/zzlotnik/os-images:silverblue"
 )
 
 containerfiles_to_build=(
