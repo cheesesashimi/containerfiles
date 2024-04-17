@@ -1,10 +1,13 @@
 FROM quay.io/zzlotnik/toolbox:base AS base
+
+FROM quay.io/zzlotnik/toolbox:tools AS tools
+
+FROM base AS final
+COPY --from=tools /rpms /rpms
 RUN --mount=type=cache,target=/var/cache/dnf,z \
     --mount=type=cache,target=/root/.cache/pip,z \
-    curl -Lo /tmp/golangci-lint.rpm 'https://github.com/golangci/golangci-lint/releases/download/v1.57.2/golangci-lint-1.57.2-linux-amd64.rpm' && \
     dnf install --setopt=keepcache=True -y \
-        /tmp/golangci-lint.rpm \
-        ShellCheck \
+        /rpms/golangci-lint.rpm \
         cargo \
         delve \
         golang \
@@ -17,8 +20,8 @@ RUN --mount=type=cache,target=/var/cache/dnf,z \
         python3-lsp-server \
         python3-neovim \
         rust-analyzer \
-        && \
-    rm /tmp/golangci-lint.rpm
+        shellcheck && \
+    rm -rf /rpms
 
 LABEL com.github.containers.toolbox="true" \
       name="zack-toolbox-container-neovim" \

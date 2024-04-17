@@ -1,0 +1,45 @@
+FROM registry.fedoraproject.org/fedora-toolbox:39
+
+# TODO: Figure out a better way to do multiarch builds for these tools.
+# Would https://github.com/devmatteini/dra work perhaps?
+ARG DYFF_ARCH="amd64"
+ARG DYFF_VERSION="1.7.1"
+WORKDIR /dyff
+RUN echo "${DYFF_VERSION}"
+RUN echo "https://github.com/homeport/dyff/releases/download/v${DYFF_VERSION}/dyff_${DYFF_VERSION}_linux_${DYFF_ARCH}.tar.gz"
+
+RUN curl -L "https://github.com/homeport/dyff/releases/download/v${DYFF_VERSION}/dyff_${DYFF_VERSION}_linux_${DYFF_ARCH}.tar.gz" | tar xz
+
+ARG OCP_VERSION=4.15.8
+ARG OCP_ARCH=
+WORKDIR /oc
+RUN curl -L https://mirror.openshift.com/pub/openshift-v4/clients/ocp/${OCP_VERSION}/openshift-client-linux${OCP_ARCH}.tar.gz | tar xz
+
+ARG ZACKS_HELPERS_VERSION=0.0.15
+ARG ZACKS_HELPERS_ARCH=x86_64
+WORKDIR /helpers
+RUN curl -L https://github.com/cheesesashimi/zacks-openshift-helpers/releases/download/v${ZACKS_HELPERS_VERSION}/zacks-openshift-helpers_Linux_${ZACKS_HELPERS_ARCH}.tar.gz | tar xz && \
+	rm README.md
+
+ARG OMC_VERSION=3.6.0
+ARG OMC_ARCH=x86_64
+WORKDIR /omc
+RUN curl -L https://github.com/gmeghnag/omc/releases/download/v${OMC_VERSION}/omc_Linux_${OMC_ARCH}.tar.gz | tar zx
+
+ARG K9S_VERSION=0.32.4
+ARG K9S_ARCH=amd64
+WORKDIR /k9s
+RUN curl -L https://github.com/derailed/k9s/releases/download/v${K9S_VERSION}/k9s_Linux_${K9S_ARCH}.tar.gz | tar xz
+
+ARG YQ_VERSION=4.43.1
+ARG YQ_ARCH=amd64
+WORKDIR /yq
+RUN curl -L https://github.com/mikefarah/yq/releases/download/v${YQ_VERSION}/yq_linux_${YQ_ARCH}.tar.gz | tar xz && \
+	mv /yq/yq_linux_${YQ_ARCH} /yq/yq
+
+WORKDIR /rpms
+RUN curl -Lo /rpms/chezmoi.rpm 'https://github.com/twpayne/chezmoi/releases/download/v2.47.3/chezmoi-2.47.3-x86_64.rpm' && \
+	curl -Lo /rpms/antibody.rpm 'https://github.com/getantibody/antibody/releases/download/v6.1.1/antibody_6.1.1_linux_amd64.rpm' && \
+	curl -Lo /rpms/dive.rpm 'https://github.com/wagoodman/dive/releases/download/v0.12.0/dive_0.12.0_linux_amd64.rpm' && \
+	curl -Lo /rpms/golangci-lint.rpm 'https://github.com/golangci/golangci-lint/releases/download/v1.57.2/golangci-lint-1.57.2-linux-amd64.rpm'
+

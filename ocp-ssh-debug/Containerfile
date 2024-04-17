@@ -1,6 +1,6 @@
-FROM docker.io/mikefarah/yq:latest AS yq
+FROM quay.io/zzlotnik/toolbox:tools AS tools
 
-FROM registry.fedoraproject.org/fedora:latest
+FROM registry.fedoraproject.org/fedora:latest AS final
 RUN --mount=type=cache,target=/var/cache/dnf,z \
 	dnf install -y openssh-clients
-COPY --from=yq /usr/bin/yq /usr/bin/yq
+COPY --from=tools /yq/yq /usr/local/bin/yq

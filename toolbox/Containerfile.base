@@ -1,13 +1,15 @@
 FROM registry.fedoraproject.org/fedora-toolbox:39 AS base
+
+FROM quay.io/zzlotnik/toolbox:tools AS tools
+
+FROM base AS final
+COPY --from=tools /rpms /rpms
 RUN --mount=type=cache,target=/var/cache/dnf,z \
-	curl -Lo /tmp/chezmoi.rpm 'https://github.com/twpayne/chezmoi/releases/download/v2.47.3/chezmoi-2.47.3-x86_64.rpm' && \
-	curl -Lo /tmp/antibody.rpm 'https://github.com/getantibody/antibody/releases/download/v6.1.1/antibody_6.1.1_linux_amd64.rpm' && \
-	curl -Lo /tmp/dive.rpm 'https://github.com/wagoodman/dive/releases/download/v0.12.0/dive_0.12.0_linux_amd64.rpm' && \
 	dnf copr enable -y atim/starship && \
 	dnf install --setopt=keepcache=True -y \
-		/tmp/antibody.rpm \
-		/tmp/chezmoi.rpm \
-		/tmp/dive.rpm \
+		/rpms/antibody.rpm \
+		/rpms/chezmoi.rpm \
+		/rpms/dive.rpm \
 		bat \
 		btop \
 		curl \
@@ -40,55 +42,15 @@ RUN --mount=type=cache,target=/var/cache/dnf,z \
 	ln -s /usr/bin/podman-remote /usr/bin/podman && \
 	# Not removing these files prevents the eza alias from working
 	rm /etc/profile.d/color*.csh /etc/profile.d/color*.sh && \
-	rm /tmp/chezmoi.rpm /tmp/antibody.rpm /tmp/dive.rpm
-
-FROM registry.fedoraproject.org/fedora-toolbox:39 AS fetcher
-
-# TODO: Figure out a better way to do multiarch builds for these tools.
-# Would https://github.com/devmatteini/dra work perhaps?
-ARG DYFF_ARCH="amd64"
-ARG DYFF_VERSION="1.7.1"
-WORKDIR /dyff
-RUN echo "${DYFF_VERSION}"
-RUN echo "https://github.com/homeport/dyff/releases/download/v${DYFF_VERSION}/dyff_${DYFF_VERSION}_linux_${DYFF_ARCH}.tar.gz"
-
-RUN curl -L "https://github.com/homeport/dyff/releases/download/v${DYFF_VERSION}/dyff_${DYFF_VERSION}_linux_${DYFF_ARCH}.tar.gz" | tar xz
-
-ARG OCP_VERSION=4.15.8
-ARG OCP_ARCH=
-WORKDIR /oc
-RUN curl -L https://mirror.openshift.com/pub/openshift-v4/clients/ocp/${OCP_VERSION}/openshift-client-linux${OCP_ARCH}.tar.gz | tar xz
-
-ARG ZACKS_HELPERS_VERSION=0.0.15
-ARG ZACKS_HELPERS_ARCH=x86_64
-WORKDIR /helpers
-RUN curl -L https://github.com/cheesesashimi/zacks-openshift-helpers/releases/download/v${ZACKS_HELPERS_VERSION}/zacks-openshift-helpers_Linux_${ZACKS_HELPERS_ARCH}.tar.gz | tar xz && \
-	rm README.md
-
-ARG OMC_VERSION=3.6.0
-ARG OMC_ARCH=x86_64
-WORKDIR /omc
-RUN curl -L https://github.com/gmeghnag/omc/releases/download/v${OMC_VERSION}/omc_Linux_${OMC_ARCH}.tar.gz | tar zx
-
-ARG K9S_VERSION=0.32.4
-ARG K9S_ARCH=amd64
-WORKDIR /k9s
-RUN curl -L https://github.com/derailed/k9s/releases/download/v${K9S_VERSION}/k9s_Linux_${K9S_ARCH}.tar.gz | tar xz
-
-ARG YQ_VERSION=4.43.1
-ARG YQ_ARCH=amd64
-WORKDIR /yq
-RUN curl -L https://github.com/mikefarah/yq/releases/download/v${YQ_VERSION}/yq_linux_${YQ_ARCH}.tar.gz | tar xz && \
-	mv /yq/yq_linux_${YQ_ARCH} /yq/yq
-
-FROM base AS final
-COPY --from=fetcher /omc/omc /usr/local/bin/omc
-COPY --from=fetcher /oc/oc /usr/local/bin/oc
-COPY --from=fetcher /oc/kubectl /usr/local/bin/kubectl
-COPY --from=fetcher /helpers/* /usr/local/bin/
-COPY --from=fetcher /dyff/dyff /usr/local/bin/
-COPY --from=fetcher /yq/yq /usr/local/bin/yq
-COPY --from=fetcher /k9s/k9s /usr/local/bin/k9s
+	rm -rf /rpms
+COPY --from=tools /omc/omc /usr/local/bin/omc
+COPY --from=tools /oc/oc /usr/local/bin/oc
+COPY --from=tools /oc/kubectl /usr/local/bin/kubectl
+COPY --from=tools /helpers/* /usr/local/bin/
+COPY --from=tools /dyff/dyff /usr/local/bin/
+COPY --from=tools /yq/yq /usr/local/bin/yq
+COPY --from=tools /k9s/k9s /usr/local/bin/k9s
+COPY --from=tools /rpms/chezmoi.rpm /rpms/antibody.rpm /rpms/dive.rpm /rpms/
 
 LABEL com.github.containers.toolbox="true" \
       name="zack-toolbox-container" \
