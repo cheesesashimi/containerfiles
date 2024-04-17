@@ -16,7 +16,7 @@ declare -rA images=(
   ["./toolbox/Containerfile.base"]="quay.io/zzlotnik/toolbox:base"
   ["./ocp-ssh-debug/Containerfile"]="quay.io/zzlotnik/testing:ssh-debug-pod"
   ["./fedora-coreos/Containerfile"]="quay.io/zzlotnik/os-images:fedora-coreos"
-  ["./silverblue/Containerfile"]="quay.io/zzlotnik/os-images:silverblue"
+  ["./fedora-silverblue/Containerfile"]="quay.io/zzlotnik/os-images:fedora-silverblue"
 )
 
 containerfiles_to_build=(
@@ -24,14 +24,14 @@ containerfiles_to_build=(
   ./toolbox/Containerfile.base
   ./ocp-ssh-debug/Containerfile
   ./fedora-coreos/Containerfile
-  ./silverblue/Containerfile
+  ./fedora-silverblue/Containerfile
 )
 
 containerfiles_to_push=(
   ./toolbox/Containerfile.base
   ./ocp-ssh-debug/Containerfile
   ./fedora-coreos/Containerfile
-  ./silverblue/Containerfile
+  ./fedora-silverblue/Containerfile
 )
 
 for base_image in "${base_images[@]}"; do
