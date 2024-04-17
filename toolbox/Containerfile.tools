@@ -2,13 +2,10 @@ FROM registry.fedoraproject.org/fedora-toolbox:39
 
 # TODO: Figure out a better way to do multiarch builds for these tools.
 # Would https://github.com/devmatteini/dra work perhaps?
-ARG DYFF_ARCH="amd64"
-ARG DYFF_VERSION="1.7.1"
+ARG DYFF_ARCH=amd64
+ARG DYFF_VERSION=1.7.1
 WORKDIR /dyff
-RUN echo "${DYFF_VERSION}"
-RUN echo "https://github.com/homeport/dyff/releases/download/v${DYFF_VERSION}/dyff_${DYFF_VERSION}_linux_${DYFF_ARCH}.tar.gz"
-
-RUN curl -L "https://github.com/homeport/dyff/releases/download/v${DYFF_VERSION}/dyff_${DYFF_VERSION}_linux_${DYFF_ARCH}.tar.gz" | tar xz
+RUN curl -L https://github.com/homeport/dyff/releases/download/v${DYFF_VERSION}/dyff_${DYFF_VERSION}_linux_${DYFF_ARCH}.tar.gz | tar xz
 
 ARG OCP_VERSION=4.15.8
 ARG OCP_ARCH=
@@ -38,8 +35,19 @@ RUN curl -L https://github.com/mikefarah/yq/releases/download/v${YQ_VERSION}/yq_
 	mv /yq/yq_linux_${YQ_ARCH} /yq/yq
 
 WORKDIR /rpms
-RUN curl -Lo /rpms/chezmoi.rpm 'https://github.com/twpayne/chezmoi/releases/download/v2.47.3/chezmoi-2.47.3-x86_64.rpm' && \
-	curl -Lo /rpms/antibody.rpm 'https://github.com/getantibody/antibody/releases/download/v6.1.1/antibody_6.1.1_linux_amd64.rpm' && \
-	curl -Lo /rpms/dive.rpm 'https://github.com/wagoodman/dive/releases/download/v0.12.0/dive_0.12.0_linux_amd64.rpm' && \
-	curl -Lo /rpms/golangci-lint.rpm 'https://github.com/golangci/golangci-lint/releases/download/v1.57.2/golangci-lint-1.57.2-linux-amd64.rpm'
 
+ARG CHEZMOI_VERSION=2.47.3
+ARG CHEZMOI_ARCH=x86_64
+RUN curl -Lo /rpms/chezmoi.rpm https://github.com/twpayne/chezmoi/releases/download/v${CHEZMOI_VERSION}/chezmoi-${CHEZMOI_VERSION}-${CHEZMOI_ARCH}.rpm
+
+ARG ANTIBODY_VERSION=6.1.1
+ARG ANTIBODY_ARCH=amd64
+RUN curl -Lo /rpms/antibody.rpm https://github.com/getantibody/antibody/releases/download/v${ANTIBODY_VERSION}/antibody_${ANTIBODY_VERSION}_linux_${ANTIBODY_ARCH}.rpm
+
+ARG DIVE_VERSION=0.12.0
+ARG DIVE_ARCH=amd64
+RUN curl -Lo /rpms/dive.rpm https://github.com/wagoodman/dive/releases/download/v${DIVE_VERSION}/dive_${DIVE_VERSION}_linux_${DIVE_ARCH}.rpm
+
+ARG GOLANGCI_LINT_VERSION=1.57.2
+ARG GOLANGCI_LINT_ARCH=amd64
+RUN curl -Lo /rpms/golangci-lint.rpm https://github.com/golangci/golangci-lint/releases/download/v${GOLANGCI_LINT_VERSION}/golangci-lint-${GOLANGCI_LINT_VERSION}-linux-${GOLANGCI_LINT_ARCH}.rpm
