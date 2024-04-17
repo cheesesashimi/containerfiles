@@ -2,11 +2,17 @@
 
 set -euo
 
+get_commit_for_tag() {
+  tag_name="$1"
+  org_and_repo="$2"
+  curl -s "https://api.github.com/repos/$org_and_repo/git/ref/tags/$tag_name" | jq -r '.object.sha'
+}
+
 get_latest_github_release_version() {
   build_arg_name="$1"
   org_and_repo="$2"
-  version="$(curl -s "https://api.github.com/repos/$org_and_repo/releases/latest" | jq -r '.tag_name' | sed 's/^v//g')"
-  echo "$build_arg_name=$version"
+  version="$(curl -s "https://api.github.com/repos/$org_and_repo/releases/latest" | jq -r '.tag_name')"
+  echo "$build_arg_name=${version/v/}"
 }
 
 get_latest_stable_openshift_release() {
