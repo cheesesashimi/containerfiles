@@ -16,40 +16,20 @@ COPY --from=tools /yq/yq /usr/local/bin/yq
 COPY --from=tools /k9s/k9s /usr/local/bin/k9s
 RUN --mount=type=cache,target=/var/cache/rpm-ostree,z \
 	rpm-ostree install -y \
-		/rpms/antibody.rpm \
-		/rpms/chezmoi.rpm \
-		/rpms/dive.rpm \
-		/rpms/golangci-lint.rpm \
-		alacritty \
 		bat \
 		btop \
-		cargo \
 		curl \
-		delve \
 		eza \
 		fd-find \
 		fzf \
 		gh \
 		git \
 		git-delta \
-		golang \
-		golang-x-tools-goimports \
-		golang-x-tools-gopls \
 		gpg \
-		hadolint \
 		jq \
 		langpacks-en \
-		neovim \
-		nodejs \
 		pinentry \
-		python3 \
-		python3 \
-		python3-lsp-server \
-		python3-neovim \
-		python3-pyyaml \
 		ripgrep \
-		rust-analyzer \
-		shellcheck \
 		skopeo \
 		starship \
 		tmux \
