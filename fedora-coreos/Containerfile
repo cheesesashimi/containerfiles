@@ -1,0 +1,69 @@
+FROM quay.io/fedora/fedora-coreos:stable AS base
+
+FROM quay.io/zzlotnik/toolbox:tools AS tools
+RUN --mount=type=cache,target=/var/cache/dnf,z \
+	dnf copr enable -y atim/starship
+
+FROM base AS final
+COPY --from=tools /etc/yum.repos.d /etc/yum.repos.d
+COPY --from=tools /rpms /rpms
+COPY --from=tools /omc/omc /usr/local/bin/omc
+COPY --from=tools /oc/oc /usr/local/bin/oc
+COPY --from=tools /oc/kubectl /usr/local/bin/kubectl
+COPY --from=tools /helpers/* /usr/local/bin/
+COPY --from=tools /dyff/dyff /usr/local/bin/
+COPY --from=tools /yq/yq /usr/local/bin/yq
+COPY --from=tools /k9s/k9s /usr/local/bin/k9s
+RUN --mount=type=cache,target=/var/cache/rpm-ostree,z \
+	rpm-ostree install -y \
+		/rpms/antibody.rpm \
+		/rpms/chezmoi.rpm \
+		/rpms/dive.rpm \
+		/rpms/golangci-lint.rpm \
+		alacritty \
+		bat \
+		btop \
+		cargo \
+		curl \
+		delve \
+		eza \
+		fd-find \
+		fzf \
+		gh \
+		git \
+		git-delta \
+		golang \
+		golang-x-tools-goimports \
+		golang-x-tools-gopls \
+		gpg \
+		hadolint \
+		jq \
+		langpacks-en \
+		neovim \
+		nodejs \
+		pinentry \
+		python3 \
+		python3 \
+		python3-lsp-server \
+		python3-neovim \
+		python3-pyyaml \
+		ripgrep \
+		rust-analyzer \
+		shellcheck \
+		skopeo \
+		starship \
+		tmux \
+		zsh && \
+	# Not removing these files prevents the eza alias from working
+	rm /etc/profile.d/color*.csh /etc/profile.d/color*.sh && \
+	rm -rf /rpms && \
+	ostree container commit
+
+ARG GIT_REVISION=dirty
+ARG GIT_REPO=unknown
+ARG CONTAINERFILE_NAME=unknown
+
+LABEL org.opencontainers.image.url=$GIT_REPO
+LABEL org.opencontainers.image.source=$GIT_REPO
+LABEL org.opencontainers.image.revision=$GIT_REVISION
+LABEL containerfile_name=$CONTAINERFILE_NAME
