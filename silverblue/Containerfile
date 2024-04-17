@@ -7,50 +7,24 @@ RUN --mount=type=cache,target=/var/cache/dnf,z \
 FROM base AS final
 COPY --from=tools /etc/yum.repos.d /etc/yum.repos.d
 COPY --from=tools /rpms /rpms
-COPY --from=tools /omc/omc /usr/local/bin/omc
-COPY --from=tools /oc/oc /usr/local/bin/oc
-COPY --from=tools /oc/kubectl /usr/local/bin/kubectl
-COPY --from=tools /helpers/* /usr/local/bin/
-COPY --from=tools /dyff/dyff /usr/local/bin/
 COPY --from=tools /yq/yq /usr/local/bin/yq
-COPY --from=tools /k9s/k9s /usr/local/bin/k9s
 RUN --mount=type=cache,target=/var/cache/rpm-ostree,z \
 	rpm-ostree install -y \
-		/rpms/antibody.rpm \
-		/rpms/chezmoi.rpm \
-		/rpms/dive.rpm \
-		/rpms/golangci-lint.rpm \
 		bat \
 		btop \
-		cargo \
 		curl \
-		delve \
 		eza \
 		fd-find \
 		fzf \
 		gh \
 		git \
 		git-delta \
-		golang \
-		golang-x-tools-goimports \
-		golang-x-tools-gopls \
 		gpg \
-		hadolint \
 		hyperfine \
 		jq \
-		kitty \
 		langpacks-en \
-		neovim \
-		nodejs \
 		pinentry \
-		python3 \
-		python3 \
-		python3-lsp-server \
-		python3-neovim \
-		python3-pyyaml \
 		ripgrep \
-		rust-analyzer \
-		shellcheck \
 		skopeo \
 		starship \
 		tmux \

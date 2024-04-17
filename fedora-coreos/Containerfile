@@ -10,7 +10,6 @@ COPY --from=tools /rpms /rpms
 COPY --from=tools /yq/yq /usr/local/bin/yq
 RUN --mount=type=cache,target=/var/cache/rpm-ostree,z \
 	rpm-ostree install -y \
-		/rpms/dive.rpm \
 		bat \
 		btop \
 		curl \

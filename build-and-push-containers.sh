@@ -14,7 +14,6 @@ base_images=(
 declare -rA images=(
   ["./toolbox/Containerfile.tools"]="quay.io/zzlotnik/toolbox:tools"
   ["./toolbox/Containerfile.base"]="quay.io/zzlotnik/toolbox:base"
-  ["./toolbox/Containerfile.neovim"]="quay.io/zzlotnik/toolbox:neovim"
   ["./ocp-ssh-debug/Containerfile"]="quay.io/zzlotnik/testing:ssh-debug-pod"
   ["./fedora-coreos/Containerfile"]="quay.io/zzlotnik/toolbox:fedora-coreos"
   ["./silverblue/Containerfile"]="quay.io/zzlotnik/toolbox:silverblue"
@@ -23,7 +22,6 @@ declare -rA images=(
 containerfiles_to_build=(
   ./toolbox/Containerfile.tools
   ./toolbox/Containerfile.base
-  ./toolbox/Containerfile.neovim
   ./ocp-ssh-debug/Containerfile
   ./fedora-coreos/Containerfile
   ./silverblue/Containerfile
@@ -31,7 +29,6 @@ containerfiles_to_build=(
 
 containerfiles_to_push=(
   ./toolbox/Containerfile.base
-  ./toolbox/Containerfile.neovim
   ./ocp-ssh-debug/Containerfile
   ./fedora-coreos/Containerfile
   ./silverblue/Containerfile

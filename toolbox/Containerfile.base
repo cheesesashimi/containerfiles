@@ -10,29 +10,42 @@ RUN --mount=type=cache,target=/var/cache/dnf,z \
 		/rpms/antibody.rpm \
 		/rpms/chezmoi.rpm \
 		/rpms/dive.rpm \
+		/rpms/golangci-lint.rpm \
 		bat \
 		btop \
+		cargo \
 		curl \
+		delve \
 		eza \
 		fd-find \
 		fzf \
 		gh \
 		git \
 		git-delta \
+		golang \
+		golang-x-tools-goimports \
+		golang-x-tools-gopls \
 		gpg \
+		hadolint \
 		hyperfine \
 		jq \
 		neovim \
+		neovim \
+		nodejs \
 		pinentry \
 		podman-remote \
 		python3 \
+		python3 \
+		python3-lsp-server \
+		python3-neovim \
 		python3-pyyaml \
 		ripgrep \
+		rust-analyzer \
+		shellcheck \
 		skopeo \
 		starship \
 		tmux \
-		zsh \
-		&& \
+		zsh && \
 	dnf copr disable -y atim/starship && \
 	# Link podman-remote to podman. Combined with 'systemctl --user enable
 	# podman.socket', this allows Podman commands to be executed from
