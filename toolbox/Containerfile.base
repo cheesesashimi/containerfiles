@@ -52,6 +52,15 @@ COPY --from=tools /yq/yq /usr/local/bin/yq
 COPY --from=tools /k9s/k9s /usr/local/bin/k9s
 COPY --from=tools /rpms/chezmoi.rpm /rpms/antibody.rpm /rpms/dive.rpm /rpms/
 
+ARG GIT_REVISION=dirty
+ARG GIT_REPO=unknown
+ARG CONTAINERFILE_NAME=unknown
+
+LABEL org.opencontainers.image.url=$GIT_REPO
+LABEL org.opencontainers.image.source=$GIT_REPO
+LABEL org.opencontainers.image.revision=$GIT_REVISION
+LABEL containerfile_name=$CONTAINERFILE_NAME
+
 LABEL com.github.containers.toolbox="true" \
       name="zack-toolbox-container" \
       usage="This image is meant to be used with the toolbox(1) command" \

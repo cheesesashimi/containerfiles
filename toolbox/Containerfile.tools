@@ -51,3 +51,12 @@ RUN curl -Lo /rpms/dive.rpm https://github.com/wagoodman/dive/releases/download/
 ARG GOLANGCI_LINT_VERSION=1.57.2
 ARG GOLANGCI_LINT_ARCH=amd64
 RUN curl -Lo /rpms/golangci-lint.rpm https://github.com/golangci/golangci-lint/releases/download/v${GOLANGCI_LINT_VERSION}/golangci-lint-${GOLANGCI_LINT_VERSION}-linux-${GOLANGCI_LINT_ARCH}.rpm
+
+ARG GIT_REVISION=dirty
+ARG GIT_REPO=unknown
+ARG CONTAINERFILE_NAME=unknown
+
+LABEL org.opencontainers.image.url=$GIT_REPO
+LABEL org.opencontainers.image.source=$GIT_REPO
+LABEL org.opencontainers.image.revision=$GIT_REVISION
+LABEL containerfile_name=$CONTAINERFILE_NAME

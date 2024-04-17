@@ -23,6 +23,15 @@ RUN --mount=type=cache,target=/var/cache/dnf,z \
         shellcheck && \
     rm -rf /rpms
 
+ARG GIT_REVISION=dirty
+ARG GIT_REPO=unknown
+ARG CONTAINERFILE_NAME=unknown
+
+LABEL org.opencontainers.image.url=$GIT_REPO
+LABEL org.opencontainers.image.source=$GIT_REPO
+LABEL org.opencontainers.image.revision=$GIT_REVISION
+LABEL containerfile_name=$CONTAINERFILE_NAME
+
 LABEL com.github.containers.toolbox="true" \
       name="zack-toolbox-container-neovim" \
       usage="This image is meant to be used with the toolbox(1) command" \
