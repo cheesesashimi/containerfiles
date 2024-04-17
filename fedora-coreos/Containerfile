@@ -20,6 +20,9 @@ RUN --mount=type=cache,target=/var/cache/rpm-ostree,z \
 		hyperfine \
 		jq \
 		langpacks-en \
+		# One of my zsh plugins needs lua. I don't know why or what the plugin does, but I will humor it for now.
+		lua \
+		nvtop \
 		pinentry \
 		ripgrep \
 		skopeo \
