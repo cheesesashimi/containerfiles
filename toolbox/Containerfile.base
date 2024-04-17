@@ -4,8 +4,8 @@ FROM quay.io/zzlotnik/toolbox:tools AS tools
 
 FROM base AS final
 COPY --from=tools /rpms /rpms
+COPY --from=tools /etc/yum.repos.d/_copr* /etc/yum.repos.d/
 RUN --mount=type=cache,target=/var/cache/dnf,z \
-	dnf copr enable -y atim/starship && \
 	dnf install --setopt=keepcache=True -y \
 		/rpms/antibody.rpm \
 		/rpms/chezmoi.rpm \
@@ -46,7 +46,6 @@ RUN --mount=type=cache,target=/var/cache/dnf,z \
 		starship \
 		tmux \
 		zsh && \
-	dnf copr disable -y atim/starship && \
 	# Link podman-remote to podman. Combined with 'systemctl --user enable
 	# podman.socket', this allows Podman commands to be executed from
 	# within a toolbox container. TODO: Figure out how to do rootless

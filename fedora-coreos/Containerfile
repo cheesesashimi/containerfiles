@@ -1,11 +1,9 @@
 FROM quay.io/fedora/fedora-coreos:stable AS base
 
 FROM quay.io/zzlotnik/toolbox:tools AS tools
-RUN --mount=type=cache,target=/var/cache/dnf,z \
-	dnf copr enable -y atim/starship
 
 FROM base AS final
-COPY --from=tools /etc/yum.repos.d /etc/yum.repos.d
+COPY --from=tools /etc/yum.repos.d/_copr* /etc/yum.repos.d/
 COPY --from=tools /yq/yq /usr/local/bin/yq
 RUN --mount=type=cache,target=/var/cache/rpm-ostree,z \
 	rpm-ostree install -y \
