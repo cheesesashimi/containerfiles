@@ -1,0 +1,26 @@
+FROM registry.fedoraproject.org/fedora-toolbox:39 AS base
+
+FROM quay.io/zzlotnik/toolbox:tools AS tools
+
+FROM base AS final
+COPY --from=tools /dyff/dyff /usr/local/bin/
+COPY --from=tools /helpers/* /usr/local/bin/
+COPY --from=tools /k9s/k9s /usr/local/bin/k9s
+COPY --from=tools /oc/kubectl /usr/local/bin/kubectl
+COPY --from=tools /oc/oc /usr/local/bin/oc
+COPY --from=tools /omc/omc /usr/local/bin/omc
+COPY --from=tools /yq/yq /usr/local/bin/yq
+
+ARG GIT_REVISION=dirty
+ARG GIT_REPO=unknown
+ARG CONTAINERFILE_SOURCE=unknown
+
+LABEL org.opencontainers.image.url=$GIT_REPO
+LABEL org.opencontainers.image.source=$CONTAINERFILE_SOURCE
+LABEL org.opencontainers.image.revision=$GIT_REVISION
+
+LABEL com.github.containers.toolbox="true" \
+      name="zack-kube-toolbox-container" \
+      usage="This image is meant to be used with the toolbox(1) command" \
+      summary="Fedora 39-based version of my kube toolbox container" \
+      maintainer="Zack Zlotnik (zzlotnik@redhat.com)"
