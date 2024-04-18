@@ -1,56 +1,48 @@
 FROM registry.fedoraproject.org/fedora-toolbox:39
 
+COPY get-arch.py /usr/local/bin/get-arch
+
 # TODO: Figure out a better way to do multiarch builds for these tools.
 # Would https://github.com/devmatteini/dra work perhaps?
-ARG DYFF_ARCH=amd64
 ARG DYFF_VERSION=1.7.1
 WORKDIR /dyff
-RUN curl -L https://github.com/homeport/dyff/releases/download/v${DYFF_VERSION}/dyff_${DYFF_VERSION}_linux_${DYFF_ARCH}.tar.gz | tar xz
+RUN curl -L "https://github.com/homeport/dyff/releases/download/v${DYFF_VERSION}/dyff_${DYFF_VERSION}_linux_$(get-arch --amd64 --arm64).tar.gz" | tar xz
 
 ARG OCP_VERSION=4.15.8
-ARG OCP_ARCH=
 WORKDIR /oc
-RUN curl -L https://mirror.openshift.com/pub/openshift-v4/clients/ocp/${OCP_VERSION}/openshift-client-linux${OCP_ARCH}.tar.gz | tar xz
+RUN curl -L "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/${OCP_VERSION}/openshift-client-linux$(get-arch --custom-x86_64="" --custom-aarch64='-arm64')".tar.gz | tar xz
 
 ARG ZACKS_HELPERS_VERSION=0.0.15
-ARG ZACKS_HELPERS_ARCH=x86_64
 WORKDIR /helpers
-RUN curl -L https://github.com/cheesesashimi/zacks-openshift-helpers/releases/download/v${ZACKS_HELPERS_VERSION}/zacks-openshift-helpers_Linux_${ZACKS_HELPERS_ARCH}.tar.gz | tar xz && \
+RUN curl -L "https://github.com/cheesesashimi/zacks-openshift-helpers/releases/download/v${ZACKS_HELPERS_VERSION}/zacks-openshift-helpers_Linux_$(get-arch --x86_64 --arm64).tar.gz" | tar xz && \
 	rm README.md
 
 ARG OMC_VERSION=3.6.0
-ARG OMC_ARCH=x86_64
 WORKDIR /omc
-RUN curl -L https://github.com/gmeghnag/omc/releases/download/v${OMC_VERSION}/omc_Linux_${OMC_ARCH}.tar.gz | tar zx
+RUN curl -L "https://github.com/gmeghnag/omc/releases/download/v${OMC_VERSION}/omc_Linux_$(get-arch --x86_64 --arm64).tar.gz" | tar zx
 
 ARG K9S_VERSION=0.32.4
-ARG K9S_ARCH=amd64
 WORKDIR /k9s
-RUN curl -L https://github.com/derailed/k9s/releases/download/v${K9S_VERSION}/k9s_Linux_${K9S_ARCH}.tar.gz | tar xz
+RUN curl -L "https://github.com/derailed/k9s/releases/download/v${K9S_VERSION}/k9s_Linux_$(get-arch --amd64 --arm64).tar.gz" | tar xz
 
 ARG YQ_VERSION=4.43.1
-ARG YQ_ARCH=amd64
 WORKDIR /yq
-RUN curl -L https://github.com/mikefarah/yq/releases/download/v${YQ_VERSION}/yq_linux_${YQ_ARCH}.tar.gz | tar xz && \
-	mv /yq/yq_linux_${YQ_ARCH} /yq/yq
+RUN curl -L "https://github.com/mikefarah/yq/releases/download/v${YQ_VERSION}/yq_linux_$(get-arch --amd64 --arm64).tar.gz" | tar xz && \
+	mv "/yq/yq_linux_$(get-arch --amd64 --arm64)" /yq/yq
 
 WORKDIR /rpms
 
 ARG CHEZMOI_VERSION=2.47.3
-ARG CHEZMOI_ARCH=x86_64
-RUN curl -Lo /rpms/chezmoi.rpm https://github.com/twpayne/chezmoi/releases/download/v${CHEZMOI_VERSION}/chezmoi-${CHEZMOI_VERSION}-${CHEZMOI_ARCH}.rpm
+RUN curl -Lo /rpms/chezmoi.rpm "https://github.com/twpayne/chezmoi/releases/download/v${CHEZMOI_VERSION}/chezmoi-${CHEZMOI_VERSION}-$(get-arch --x86_64 --aarch64).rpm"
 
 ARG ANTIBODY_VERSION=6.1.1
-ARG ANTIBODY_ARCH=amd64
-RUN curl -Lo /rpms/antibody.rpm https://github.com/getantibody/antibody/releases/download/v${ANTIBODY_VERSION}/antibody_${ANTIBODY_VERSION}_linux_${ANTIBODY_ARCH}.rpm
+RUN curl -Lo /rpms/antibody.rpm "https://github.com/getantibody/antibody/releases/download/v${ANTIBODY_VERSION}/antibody_${ANTIBODY_VERSION}_linux_$(get-arch --amd64 --arm64).rpm"
 
 ARG DIVE_VERSION=0.12.0
-ARG DIVE_ARCH=amd64
-RUN curl -Lo /rpms/dive.rpm https://github.com/wagoodman/dive/releases/download/v${DIVE_VERSION}/dive_${DIVE_VERSION}_linux_${DIVE_ARCH}.rpm
+RUN curl -Lo /rpms/dive.rpm "https://github.com/wagoodman/dive/releases/download/v${DIVE_VERSION}/dive_${DIVE_VERSION}_linux_$(get-arch --amd64 --arm64).rpm"
 
 ARG GOLANGCI_LINT_VERSION=1.57.2
-ARG GOLANGCI_LINT_ARCH=amd64
-RUN curl -Lo /rpms/golangci-lint.rpm https://github.com/golangci/golangci-lint/releases/download/v${GOLANGCI_LINT_VERSION}/golangci-lint-${GOLANGCI_LINT_VERSION}-linux-${GOLANGCI_LINT_ARCH}.rpm
+RUN curl -Lo /rpms/golangci-lint.rpm "https://github.com/golangci/golangci-lint/releases/download/v${GOLANGCI_LINT_VERSION}/golangci-lint-${GOLANGCI_LINT_VERSION}-linux-$(get-arch --amd64 --arm64).rpm"
 
 RUN --mount=type=cache,target=/var/cache/dnf,z \
 	dnf copr enable -y atim/starship
