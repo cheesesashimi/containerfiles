@@ -75,7 +75,7 @@ for containerfile in "${containerfiles_to_build[@]}"; do
 done
 
 # If the path to an authfile is provided, push each image.
-if [[ -n "$creds_path" ]] && [[ -d "$creds_path" ]]; then
+if [[ -n "$creds_path" ]] && [[ -f "$creds_path" ]]; then
   for containerfile in "${containerfiles_to_push[@]}"; do
     tag="${images[${containerfile}]}"
     podman push --authfile="$creds_path" "$tag"
