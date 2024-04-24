@@ -1,9 +1,8 @@
-FROM registry.fedoraproject.org/fedora-toolbox:39
+ARG FEDORA_VERSION=39
+FROM registry.fedoraproject.org/fedora-toolbox:${FEDORA_VERSION}
 
 COPY get-arch.py /usr/local/bin/get-arch
 
-# TODO: Figure out a better way to do multiarch builds for these tools.
-# Would https://github.com/devmatteini/dra work perhaps?
 ARG DYFF_VERSION=1.7.1
 WORKDIR /dyff
 RUN curl -L "https://github.com/homeport/dyff/releases/download/v${DYFF_VERSION}/dyff_${DYFF_VERSION}_linux_$(get-arch --amd64 --arm64).tar.gz" | tar xz

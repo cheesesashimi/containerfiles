@@ -1,6 +1,8 @@
-FROM quay.io/fedora/fedora-silverblue:39 AS base
+ARG FEDORA_VERSION=39
+FROM quay.io/fedora/fedora-silverblue:${FEDORA_VERSION} AS base
 
-FROM quay.io/zzlotnik/toolbox:tools AS tools
+ARG FEDORA_VERSION=${FEDORA_VERSION}
+FROM quay.io/zzlotnik/toolbox:tools-fedora-${FEDORA_VERSION} AS tools
 
 FROM base AS final
 COPY --from=tools /etc/yum.repos.d/_copr* /etc/yum.repos.d/
