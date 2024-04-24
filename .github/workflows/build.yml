@@ -1,0 +1,40 @@
+name: build
+
+on:
+  schedule:
+    # 7:00 AM EDT
+    - cron: '0 11 * * *'
+  push:
+    branches:
+      - 'main'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    - name: Upgrade Podman
+      run: |-
+        #!/usr/bin/env bash
+        set -euo
+        podman version
+        echo 'deb http://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/unstable/xUbuntu_22.04/ /' | sudo tee /etc/apt/sources.list.d/devel:kubic:libcontainers:unstable.list
+        curl -fsSL https://download.opensuse.org/repositories/devel:kubic:libcontainers:unstable/xUbuntu_22.04/Release.key | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/devel_kubic_libcontainers_unstable.gpg > /dev/null
+        sudo apt update
+        sudo apt upgrade podman -y
+        podman version
+    - name: Build and Push
+      env:
+        PUSH_SECRET: ${{ secrets.QUAY_PUSH_CREDS }}
+      run: |-
+        #!/usr/bin/env bash
+        authfile_dir="$(mktemp -d)"
+        echo "$PUSH_SECRET" > "$authfile_dir/authfile"
+        ./build-and-push-containers.py --authfile "$authfile_dir/authfile"
+        rm -rf "$authfile_dir"

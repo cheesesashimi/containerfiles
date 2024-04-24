@@ -3,9 +3,13 @@
 import argparse
 import os
 import json
+import logging
 import re
 import subprocess
 import sys
+import tempfile
+
+logger = logging.getLogger(__name__)
 
 BUILD_ARGS_CACHE_FILE = ".build-args.json"
 GIT_REPO = "https://github.com/cheesesashimi/containerfiles"
@@ -49,15 +53,15 @@ def get_latest_github_release_version(org_and_repo: str) -> str:
     cmd.check_returncode()
     tag_name = json.loads(cmd.stdout)["tag_name"]
     trimmed = trim_vee(tag_name)
-    print(f"Found {tag_name} for {org_and_repo}, cleaning to {trimmed}")
+    logger.info(f"Found {tag_name} for {org_and_repo}, cleaning to {trimmed}")
     return trimmed
 
 
 def load_build_args_from_file(path: str, github_versions: dict) -> dict:
     if path == BUILD_ARGS_CACHE_FILE:
-        print(f"Reusing cached build args from {path}")
+        logger.info(f"Reusing cached build args from {path}")
     else:
-        print(f"Reading build args from {path}")
+        logger.info(f"Reading build args from {path}")
     with open(path, "r") as build_args_file:
         build_args = json.load(build_args_file)
 
@@ -80,7 +84,7 @@ def get_common_build_args(args, github_versions: dict) -> list:
         build_args = load_build_args_From_file(BUILD_ARGS_CACHE_FILE, github_versions)
 
     if not args.skip_github and not args.build_args_file:
-        print(f"Reading GitHub versions")
+        logger.info(f"Reading GitHub versions")
         build_args = get_github_build_args(github_versions)
 
     if not args.skip_openshift and not args.build_args_file:
@@ -91,10 +95,11 @@ def get_common_build_args(args, github_versions: dict) -> list:
     build_args["GIT_REVISION"] = get_git_commit_sha()
 
     with open(BUILD_ARGS_CACHE_FILE, "w") as cache_file:
-        print(f"Caching build args to {BUILD_ARGS_CACHE_FILE}")
+        logger.info(f"Caching build args to {BUILD_ARGS_CACHE_FILE}")
         json.dump(build_args, cache_file)
 
     return [f"{key}={val}" for key, val in build_args.items()]
+
 
 
 class Image(object):
@@ -108,10 +113,8 @@ class Image(object):
         args = [
             "podman",
             "build",
-            "--tag",
-            self._pushspec,
-            "--file",
-            self._containerfile,
+            "--tag", self._pushspec,
+            "--file", self._containerfile,
         ]
 
         for build_arg in self._build_args:
@@ -123,23 +126,34 @@ class Image(object):
 
         args.append(build_context)
 
-        print(f"Building {self._containerfile}")
+        logger.info(f"Building {self._containerfile}")
+        logger.info(f"$ {' '.join(args)}")
         subprocess.run(args).check_returncode()
 
     def push(self, authfile: str):
         args = ["podman", "push", "--authfile", authfile, self._pushspec]
-        print(f"Pushing {self._pushspec}")
+        logger.info(f"Pushing {self._pushspec}")
+        logger.info(f"$ {' '.join(args)}")
+        subprocess.run(args).check_returncode()
+
+    def clear(self):
+        args = ["podman", "image", "rm", self._pushspec]
+        logger.info(f"Clearing {self._pushspec}")
+        logger.info(f"$ {' '.join(args)}")
         subprocess.run(args).check_returncode()
 
 
-def pull_base_image(base_image: str):
-    subprocess.run(["podman", "pull", base_image]).check_returncode()
-
-
 def main(args):
-    if args.push_only and not args.authfile:
-        print(f"Must set --authfile when --push-only is set")
+    if args.authfile != "" and args.push_only:
+        logger.error(f"Cannot combine --authfile and --push-only")
         sys.exit(1)
+
+    if args.authfile != "":
+        if not os.path.exists(args.authfile):
+            logger.error(f"Authfile {args.authfile} does not exist")
+            sys.exit(1)
+
+        logger.info(f"Will push using creds in {args.authfile}")
 
     github_versions = {
         "ANTIBODY_VERSION": "getantibody/antibody",
@@ -154,7 +168,7 @@ def main(args):
     }
 
     common_build_args = get_common_build_args(args, github_versions)
-    print(f"Applying common build args to all builds: {common_build_args}")
+    logger.info(f"Applying common build args to all builds: {common_build_args}")
 
     images = [
         Image(
@@ -209,30 +223,18 @@ def main(args):
         ),
     ]
 
-    base_images = [
-        "registry.fedoraproject.org/fedora-toolbox:39",
-        "registry.fedoraproject.org/fedora-toolbox:40",
-        "registry.fedoraproject.org/fedora:latest",
-        "quay.io/fedora/fedora-coreos:stable",
-        "quay.io/fedora/fedora-silverblue:39",
-        "quay.io/fedora/fedora-silverblue:40",
-    ]
+    for image in images:
+        image.build()
 
-    if not args.no_image_pull and not args.push_only:
-        for base_image in base_images:
-            pull_base_image(base_image)
-
-    if not args.push_only:
-        for image in images:
-            image.build()
-
-    if args.authfile:
-        for image in images[2:]:
+        if args.authfile:
             image.push(args.authfile)
+
+        if "CI" in os.environ:
+            image.clear()
 
     if os.path.exists(BUILD_ARGS_CACHE_FILE):
         os.remove(BUILD_ARGS_CACHE_FILE)
-        print(f"Removed {BUILD_ARGS_CACHE_FILE}")
+        logger.info(f"Removed {BUILD_ARGS_CACHE_FILE}")
 
 
 if __name__ == "__main__":
@@ -262,7 +264,7 @@ if __name__ == "__main__":
         dest="push_only",
         action="store_true",
         default=False,
-        help="Only push images",
+        help="Push the local tags, if found",
     )
 
     parser.add_argument(
