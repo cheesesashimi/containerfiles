@@ -3,24 +3,15 @@
 import argparse
 import os
 import json
+import re
 import subprocess
 import sys
 
 GIT_REPO = "https://github.com/cheesesashimi/containerfiles"
+VERSION_REGEX = re.compile(r"^v[0-9].*$")
 
 
 def get_github_build_args(github_versions: dict) -> dict:
-    # return {
-    #    "ANTIBODY_VERSION": "6.1.1",
-    #    "CHEZMOI_VERSION": "2.47.3",
-    #    "DIVE_VERSION": "0.12.0",
-    #    "DYFF_VERSION": "1.7.1",
-    #    "GOLANGCI_LINT_VERSION": "1.57.2",
-    #    "K9S_VERSION": "0.32.4",
-    #    "OMC_VERSION": "3.6.0",
-    #    "YQ_VERSION": "4.43.1",
-    #    "ZACKS_HELPERS_VERSION": "0.0.15",
-    # }
     out = {}
 
     for arg, org_and_repo in github_versions.items():
@@ -44,11 +35,32 @@ def get_git_commit_sha() -> str:
     return cmd.stdout.decode("utf-8").strip()
 
 
+def trim_vee(arg: str) -> str:
+    if not VERSION_REGEX.match(arg):
+        return arg
+
+    return arg[1:]
+
+
 def get_latest_github_release_version(org_and_repo: str) -> str:
     url = f"https://api.github.com/repos/{org_and_repo}/releases/latest"
     cmd = subprocess.run(["curl", "-s", url], capture_output=True)
     cmd.check_returncode()
-    return json.loads(cmd.stdout)["tag_name"]
+    tag_name = json.loads(cmd.stdout)["tag_name"]
+    trimmed = trim_vee(tag_name)
+    print(f"Found {tag_name} for {org_and_repo}, cleaning to {trimmed}")
+    return trimmed
+
+
+def load_build_args_from_file(path: str, github_versions: dict) -> dict:
+    with open(args.build_args_file, "r") as build_args_file:
+        build_args = json.load(build_args_file)
+
+    for arg, val in build_args.items():
+        if arg in github_versions:
+            build_args[arg] = trim_vee(val)
+
+    return build_args
 
 
 def get_common_build_args(args, github_versions: dict) -> list:
@@ -56,12 +68,17 @@ def get_common_build_args(args, github_versions: dict) -> list:
         return []
 
     build_args = {}
-    if not args.skip_github:
+    if args.build_args_file:
+        print(f"Reading build args from {args.build_args_file}")
+        build_args = load_build_args_from_file(args.build_args_file, github_versions)
+
+    if not args.skip_github and not args.build_args_file:
+        print(f"Reading GitHub versions")
         build_args = get_github_build_args(github_versions)
 
     build_args["GIT_REPO"] = GIT_REPO
 
-    if not args.skip_openshift:
+    if not args.skip_openshift and not args.build_args_file:
         build_args["OCP_VERSION"] = get_latest_stable_openshift_release()
 
     build_args["GIT_REVISION"] = get_git_commit_sha()
@@ -125,6 +142,7 @@ def main(args):
     }
 
     common_build_args = get_common_build_args(args, github_versions)
+    print(f"Applying common build args to all builds: {common_build_args}")
 
     images = [
         Image(
@@ -245,6 +263,14 @@ if __name__ == "__main__":
         action="store_true",
         default=False,
         help="Skip GitHub version check",
+    )
+
+    parser.add_argument(
+        "--build-args-file",
+        dest="build_args_file",
+        action="store",
+        default=None,
+        help='Path to a build args JSON file containing build args in the form of {"arg1": "val1", "arg2": "val2"}',
     )
 
     args = parser.parse_args()
