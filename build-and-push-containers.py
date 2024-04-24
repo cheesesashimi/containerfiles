@@ -7,6 +7,7 @@ import re
 import subprocess
 import sys
 
+BUILD_ARGS_CACHE_FILE = ".build-args.json"
 GIT_REPO = "https://github.com/cheesesashimi/containerfiles"
 VERSION_REGEX = re.compile(r"^v[0-9].*$")
 
@@ -53,7 +54,11 @@ def get_latest_github_release_version(org_and_repo: str) -> str:
 
 
 def load_build_args_from_file(path: str, github_versions: dict) -> dict:
-    with open(args.build_args_file, "r") as build_args_file:
+    if path == BUILD_ARGS_CACHE_FILE:
+        print(f"Reusing cached build args from {path}")
+    else:
+        print(f"Reading build args from {path}")
+    with open(path, "r") as build_args_file:
         build_args = json.load(build_args_file)
 
     for arg, val in build_args.items():
@@ -69,19 +74,26 @@ def get_common_build_args(args, github_versions: dict) -> list:
 
     build_args = {}
     if args.build_args_file:
-        print(f"Reading build args from {args.build_args_file}")
         build_args = load_build_args_from_file(args.build_args_file, github_versions)
+
+    if os.path.isfile(BUILD_ARGS_CACHE_FILE) and not args.build_args_file:
+        build_args = load_build_args_From_file(BUILD_ARGS_CACHE_FILE, github_versions)
 
     if not args.skip_github and not args.build_args_file:
         print(f"Reading GitHub versions")
         build_args = get_github_build_args(github_versions)
 
-    build_args["GIT_REPO"] = GIT_REPO
-
     if not args.skip_openshift and not args.build_args_file:
         build_args["OCP_VERSION"] = get_latest_stable_openshift_release()
 
+    build_args["GIT_REPO"] = GIT_REPO
+
     build_args["GIT_REVISION"] = get_git_commit_sha()
+
+    with open(BUILD_ARGS_CACHE_FILE, "w") as cache_file:
+        print(f"Caching build args to {BUILD_ARGS_CACHE_FILE}")
+        json.dump(build_args, cache_file)
+
     return [f"{key}={val}" for key, val in build_args.items()]
 
 
@@ -217,6 +229,10 @@ def main(args):
     if args.authfile:
         for image in images[2:]:
             image.push(args.authfile)
+
+    if os.path.exists(BUILD_ARGS_CACHE_FILE):
+        os.remove(BUILD_ARGS_CACHE_FILE)
+        print(f"Removed {BUILD_ARGS_CACHE_FILE}")
 
 
 if __name__ == "__main__":
