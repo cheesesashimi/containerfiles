@@ -8,6 +8,7 @@ FROM base AS final
 ARG FEDORA_VERSION=${FEDORA_VERSION}
 COPY --from=tools /rpms /rpms
 COPY --from=tools /etc/yum.repos.d/_copr* /etc/yum.repos.d/
+COPY ./goreleaser.repo /etc/yum.repos.d/goreleaser.repo
 RUN --mount=type=cache,target=/var/cache/dnf,z \
 	dnf install --setopt=keepcache=True -y \
 		/rpms/antibody.rpm \
@@ -28,6 +29,7 @@ RUN --mount=type=cache,target=/var/cache/dnf,z \
 		golang \
 		golang-x-tools-goimports \
 		golang-x-tools-gopls \
+		goreleaser \
 		gpg \
 		hadolint \
 		hyperfine \
