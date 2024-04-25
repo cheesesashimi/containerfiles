@@ -24,6 +24,8 @@ RUN --mount=type=cache,target=/var/cache/rpm-ostree,z \
 		kitty \
 		lua \
 		nvtop \
+		# qflipper cannot be run from a toolbox container
+		qflipper \
 		ripgrep \
 		skopeo \
 		starship \
