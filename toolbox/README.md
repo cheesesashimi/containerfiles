@@ -12,6 +12,9 @@ These containers may be pulled from:
 - `quay.io/zzlotnik/toolbox:base-fedora-40`
 - `quay.io/zzlotnik/toolbox:kube-fedora-39`
 - `quay.io/zzlotnik/toolbox:kube-fedora-40`
+- `quay.io/zzlotnik/toolbox:mco-fedora-39`
+- `quay.io/zzlotnik/toolbox:mco-fedora-40`
+
 
 ## Usage with Toolbx
 
@@ -64,11 +67,19 @@ for:
   `quay.io/zzlotnik/toolbos:tools-fedora-{39,40}`, though it is not intended
   for consumption by anything other than a container build process. This
   pullspec will eventually become nonexistent.
+- `Containerfile.mco` - This image contains everything included in
+  `Containerfile.kube` as well as my [`OpenShift Helpers`](https://github.com/cheesesashimi/zacks-openshift-helpers). These
+  are tools I've personally written to assist in my day-to-day work on the
+  OpenShift [Machine Config Operator](https://github.com/openshift/machine-config-operator). These tools
+  are not intended to be used by an end-user of the OpenShift platform and can
+  easily lead to cluster instability when used incorrectly. You have been
+  warned :smile:.
 
 ## Kubernetes Tools
 
-- `oc` - OpenShift CLI tool.
-- `kubectl` - Kubernetes CLI tool.
+- [`dyff`](https://github.com/homeport/dyff) - A JSON / YAML aware diffing tool.
 - [`k9s`](https://github.com/derailed/k9s) - Cool `top`-like display for your Kubernetes cluster.
 - [`omc`](https://github.com/gmeghnani/omc) - Useful if you work with must-gather reports from OpenShift.
 - [`yq`](https://github.com/mikefarah/yq) - A CLI YAML parsing tool.
+- `oc` - OpenShift CLI tool.
+- `kubectl` - Kubernetes CLI tool.

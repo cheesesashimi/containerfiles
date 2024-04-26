@@ -101,7 +101,6 @@ def get_common_build_args(args, github_versions: dict) -> list:
     return [f"{key}={val}" for key, val in build_args.items()]
 
 
-
 class Image(object):
     def __init__(self, containerfile: str, pushspec: str, build_args: list):
         self._containerfile = containerfile
@@ -113,8 +112,10 @@ class Image(object):
         args = [
             "podman",
             "build",
-            "--tag", self._pushspec,
-            "--file", self._containerfile,
+            "--tag",
+            self._pushspec,
+            "--file",
+            self._containerfile,
         ]
 
         for build_arg in self._build_args:
@@ -199,6 +200,16 @@ def main(args):
         Image(
             "toolbox/Containerfile.kube",
             "quay.io/zzlotnik/toolbox:kube-fedora-40",
+            common_build_args + ["FEDORA_VERSION=40"],
+        ),
+        Image(
+            "toolbox/Containerfile.mco",
+            "quay.io/zzlotnik/toolbox:mco-fedora-39",
+            common_build_args + ["FEDORA_VERSION=39"],
+        ),
+        Image(
+            "toolbox/Containerfile.mco",
+            "quay.io/zzlotnik/toolbox:mco-fedora-40",
             common_build_args + ["FEDORA_VERSION=40"],
         ),
         Image(

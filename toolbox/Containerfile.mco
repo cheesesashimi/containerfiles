@@ -1,16 +1,11 @@
 ARG FEDORA_VERSION=39
-FROM registry.fedoraproject.org/fedora-toolbox:${FEDORA_VERSION} AS base
+FROM quay.io/zzlotnik/toolbox:kube-fedora-${FEDORA_VERSION} AS base
 
 ARG FEDORA_VERSION=${FEDORA_VERSION}
 FROM quay.io/zzlotnik/toolbox:tools-fedora-${FEDORA_VERSION} AS tools
 
 FROM base AS final
-COPY --from=tools /dyff/dyff /usr/local/bin/
-COPY --from=tools /k9s/k9s /usr/local/bin/k9s
-COPY --from=tools /oc/kubectl /usr/local/bin/kubectl
-COPY --from=tools /oc/oc /usr/local/bin/oc
-COPY --from=tools /omc/omc /usr/local/bin/omc
-COPY --from=tools /yq/yq /usr/local/bin/yq
+COPY --from=tools /helpers/* /usr/local/bin/
 
 ARG GIT_REVISION=dirty
 ARG GIT_REPO=unknown
@@ -22,7 +17,8 @@ LABEL org.opencontainers.image.source=$CONTAINERFILE_SOURCE
 LABEL org.opencontainers.image.revision=$GIT_REVISION
 
 LABEL com.github.containers.toolbox="true" \
-      name="zack-kube-toolbox-container" \
+      name="zack-mco-kube-toolbox-container" \
       usage="This image is meant to be used with the toolbox(1) command" \
       summary="Fedora ${FEDORA_VERSION} version of my kube toolbox container" \
       maintainer="Zack Zlotnik (zzlotnik@redhat.com)"
+
