@@ -226,6 +226,11 @@ def main(args):
             common_build_args + ["FEDORA_VERSION=40"],
         ),
         Image(
+            "devex/Containerfile.buildah",
+            "quay.io/zzlotnik/devex:buildah",
+            common_build_args,
+        ),
+        Image(
             "fedora-coreos/Containerfile",
             "quay.io/zzlotnik/os-images:fedora-coreos",
             common_build_args + ["FEDORA_VERSION=39"],
@@ -249,6 +254,8 @@ def main(args):
             logger.error(f"Missing containerfile for {image}")
             sys.exit(1)
 
+    for image in images:
+        image.build()
 
         if args.authfile:
             image.push(args.authfile)
