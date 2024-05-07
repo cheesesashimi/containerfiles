@@ -103,6 +103,19 @@ def get_common_build_args(args, github_versions: dict) -> list:
     return [f"{key}={val}" for key, val in build_args.items()]
 
 
+def clear_image_pullspec(pullspec):
+    logger.info(f"Disk space before clear:")
+    subprocess.run(["df", "-h"]).check_returncode()
+
+    args = ["podman", "image", "rm", pullspec]
+    logger.info(f"Clearing {pullspec}")
+    logger.info(f"$ {' '.join(args)}")
+    subprocess.run(args).check_returncode()
+
+    logger.info(f"Disk space after clear:")
+    subprocess.run(["df", "-h"]).check_returncode()
+
+
 @dataclass
 class Image:
     containerfile: str
@@ -149,10 +162,7 @@ class Image:
         subprocess.run(args).check_returncode()
 
     def clear(self):
-        args = ["podman", "image", "rm", self.pushspec]
-        logger.info(f"Clearing {self.pushspec}")
-        logger.info(f"$ {' '.join(args)}")
-        subprocess.run(args).check_returncode()
+        clear_image_pullspec(self.pushspec)
 
     def get_base_images(self):
         build_arg_dict = {}
@@ -187,6 +197,18 @@ class Image:
         return base_images
 
 
+def group_images_by_fedora_version(images: list) -> (list, list):
+    fedora_39_images = []
+    fedora_40_images = []
+
+    for image in images:
+        if "FEDORA_VERSION=39" in image.build_args:
+            fedora_39_images.append(image)
+        elif "FEDORA_VERSION=40" in image.build_args:
+            fedora_40_images.append(image)
+
+    return fedora_39_images, fedora_40_images
+
 
 def main(args):
     if args.authfile != "" and args.push_only:
@@ -215,75 +237,77 @@ def main(args):
     common_build_args = get_common_build_args(args, github_versions)
     logger.info(f"Applying common build args to all builds: {common_build_args}")
 
-    images = [
-        Image(
-            "toolbox/Containerfile.tools",
-            "quay.io/zzlotnik/toolbox:tools-fedora-39",
-            common_build_args + ["FEDORA_VERSION=39"],
-        ),
-        Image(
-            "toolbox/Containerfile.tools",
-            "quay.io/zzlotnik/toolbox:tools-fedora-40",
-            common_build_args + ["FEDORA_VERSION=40"],
-        ),
-        Image(
-            "toolbox/Containerfile.base",
-            "quay.io/zzlotnik/toolbox:base-fedora-39",
-            common_build_args + ["FEDORA_VERSION=39"],
-        ),
-        Image(
-            "toolbox/Containerfile.base",
-            "quay.io/zzlotnik/toolbox:base-fedora-40",
-            common_build_args + ["FEDORA_VERSION=40"],
-        ),
-        Image(
-            "toolbox/Containerfile.kube",
-            "quay.io/zzlotnik/toolbox:kube-fedora-39",
-            common_build_args + ["FEDORA_VERSION=39"],
-        ),
-        Image(
-            "toolbox/Containerfile.kube",
-            "quay.io/zzlotnik/toolbox:kube-fedora-40",
-            common_build_args + ["FEDORA_VERSION=40"],
-        ),
-        Image(
-            "toolbox/Containerfile.mco",
-            "quay.io/zzlotnik/toolbox:mco-fedora-39",
-            common_build_args + ["FEDORA_VERSION=39"],
-        ),
-        Image(
-            "toolbox/Containerfile.mco",
-            "quay.io/zzlotnik/toolbox:mco-fedora-40",
-            common_build_args + ["FEDORA_VERSION=40"],
-        ),
-        Image(
-            "fedora-coreos/Containerfile",
-            "quay.io/zzlotnik/os-images:fedora-coreos",
-            common_build_args + ["FEDORA_VERSION=39"],
-        ),
-        Image(
-            "fedora-silverblue/Containerfile",
-            "quay.io/zzlotnik/os-images:fedora-silverblue-39",
-            common_build_args + ["FEDORA_VERSION=39"],
-        ),
-        Image(
-            "fedora-silverblue/Containerfile",
-            "quay.io/zzlotnik/os-images:fedora-silverblue-40",
-            common_build_args + ["FEDORA_VERSION=40"],
-        ),
-    ]
+    fedora_39_images, fedora_40_images = group_images_by_fedora_version(
+        [
+            Image(
+                "toolbox/Containerfile.tools",
+                "quay.io/zzlotnik/toolbox:tools-fedora-39",
+                common_build_args + ["FEDORA_VERSION=39"],
+            ),
+            Image(
+                "toolbox/Containerfile.tools",
+                "quay.io/zzlotnik/toolbox:tools-fedora-40",
+                common_build_args + ["FEDORA_VERSION=40"],
+            ),
+            Image(
+                "toolbox/Containerfile.base",
+                "quay.io/zzlotnik/toolbox:base-fedora-39",
+                common_build_args + ["FEDORA_VERSION=39"],
+            ),
+            Image(
+                "toolbox/Containerfile.base",
+                "quay.io/zzlotnik/toolbox:base-fedora-40",
+                common_build_args + ["FEDORA_VERSION=40"],
+            ),
+            Image(
+                "toolbox/Containerfile.kube",
+                "quay.io/zzlotnik/toolbox:kube-fedora-39",
+                common_build_args + ["FEDORA_VERSION=39"],
+            ),
+            Image(
+                "toolbox/Containerfile.kube",
+                "quay.io/zzlotnik/toolbox:kube-fedora-40",
+                common_build_args + ["FEDORA_VERSION=40"],
+            ),
+            Image(
+                "toolbox/Containerfile.mco",
+                "quay.io/zzlotnik/toolbox:mco-fedora-39",
+                common_build_args + ["FEDORA_VERSION=39"],
+            ),
+            Image(
+                "toolbox/Containerfile.mco",
+                "quay.io/zzlotnik/toolbox:mco-fedora-40",
+                common_build_args + ["FEDORA_VERSION=40"],
+            ),
+            Image(
+                "fedora-coreos/Containerfile",
+                "quay.io/zzlotnik/os-images:fedora-coreos",
+                common_build_args + ["FEDORA_VERSION=39"],
+            ),
+            Image(
+                "fedora-silverblue/Containerfile",
+                "quay.io/zzlotnik/os-images:fedora-silverblue-39",
+                common_build_args + ["FEDORA_VERSION=39"],
+            ),
+            Image(
+                "fedora-silverblue/Containerfile",
+                "quay.io/zzlotnik/os-images:fedora-silverblue-40",
+                common_build_args + ["FEDORA_VERSION=40"],
+            ),
+            Image(
+                "fedora-coreos/Containerfile",
+                "quay.io/zzlotnik/os-images:fedora-coreos",
+                common_build_args + ["FEDORA_VERSION=39"],
+            ),
+            Image(
+                "ocp-ssh-debug/Containerfile",
+                "quay.io/zzlotnik/testing:ssh-debug-pod",
+                common_build_args + ["FEDORA_VERSION=40"],
+            ),
+        ]
+    )
 
     standalone_images = [
-        Image(
-            "fedora-coreos/Containerfile",
-            "quay.io/zzlotnik/os-images:fedora-coreos",
-            common_build_args + ["FEDORA_VERSION=39"],
-        ),
-        Image(
-            "ocp-ssh-debug/Containerfile",
-            "quay.io/zzlotnik/testing:ssh-debug-pod",
-            common_build_args + ["FEDORA_VERSION=40"],
-        ),
         Image(
             "devex/Containerfile.buildah",
             "quay.io/zzlotnik/devex:buildah",
@@ -298,21 +322,31 @@ def main(args):
         ]
     )
 
-    for image in images:
-        if image.containerfile_exists():
-            logger.info(f"Found containerfile for {image}")
-        else:
-            logger.error(f"Missing containerfile for {image}")
-            sys.exit(1)
+    image_batches = [fedora_39_images, fedora_40_images, standalone_images]
 
-    for image in images:
-        image.build()
+    for image_batch in image_batches:
+        for image in image_batch:
+            if image.containerfile_exists():
+                logger.info(f"Found containerfile for {image}")
+            else:
+                logger.error(f"Missing containerfile for {image}")
+                sys.exit(1)
 
-        if args.authfile and image.pushspec not in transient_images:
-            image.push(args.authfile)
+    for image_batch in image_batches:
+        batch_base_images = set()
 
-        if "CI" in os.environ and image.pushspec not in transient_images:
-            image.clear()
+        for image in image_batch:
+            batch_base_images.update(image.get_base_images())
+            image.build()
+
+            if args.authfile and image.pushspec not in transient_images:
+                image.push(args.authfile)
+
+            if "CI" in os.environ and image.pushspec not in transient_images:
+                image.clear()
+
+        for base_image in batch_base_images:
+            clear_image_pullspec(base_image)
 
     if os.path.exists(BUILD_ARGS_CACHE_FILE):
         os.remove(BUILD_ARGS_CACHE_FILE)
