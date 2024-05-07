@@ -313,6 +313,11 @@ def main(args):
             "quay.io/zzlotnik/devex:buildah",
             common_build_args,
         ),
+        Image(
+            "devex/Containerfile.epel",
+            "quay.io/zzlotnik/devex:epel",
+            common_build_args,
+        ),
     ]
 
     transient_images = frozenset(
