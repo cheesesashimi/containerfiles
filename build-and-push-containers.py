@@ -194,6 +194,9 @@ class Image:
                     line = line.replace(inline_key, val)
             base_images.add(line.split(" ")[1])
 
+        if "scratch" in base_images:
+            base_images.discard("scratch")
+
         return base_images
 
 
