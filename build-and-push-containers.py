@@ -342,11 +342,12 @@ def main(args):
             if args.authfile and image.pushspec not in transient_images:
                 image.push(args.authfile)
 
-            if "CI" in os.environ and image.pushspec not in transient_images:
+            if args.clear_images and image.pushspec not in transient_images:
                 image.clear()
 
-        for base_image in batch_base_images:
-            clear_image_pullspec(base_image)
+        if args.clear_images:
+            for base_image in batch_base_images:
+                clear_image_pullspec(base_image)
 
     if os.path.exists(BUILD_ARGS_CACHE_FILE):
         os.remove(BUILD_ARGS_CACHE_FILE)
@@ -405,6 +406,14 @@ if __name__ == "__main__":
         action="store_true",
         default=False,
         help="Skip OpenShift version check",
+    )
+
+    parser.add_argument(
+        "--clear-images",
+        dest="clear_images",
+        action="store_true",
+        default=False,
+        help="Clear images after build to conserve disk space (primarily for GitHub Actions)",
     )
 
     parser.add_argument(

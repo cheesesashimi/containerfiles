@@ -36,5 +36,5 @@ jobs:
         #!/usr/bin/env bash
         authfile_dir="$(mktemp -d)"
         echo "$PUSH_SECRET" > "$authfile_dir/authfile"
-        ./build-and-push-containers.py --authfile "$authfile_dir/authfile"
+        ./build-and-push-containers.py --authfile "$authfile_dir/authfile" --clear-images
         rm -rf "$authfile_dir"
