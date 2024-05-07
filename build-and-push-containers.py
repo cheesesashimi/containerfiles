@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+from dataclasses import dataclass
+
 import argparse
 import os
 import json
@@ -83,7 +85,7 @@ def get_common_build_args(args, github_versions: dict) -> list:
     if os.path.isfile(BUILD_ARGS_CACHE_FILE) and not args.build_args_file:
         build_args = load_build_args_from_file(BUILD_ARGS_CACHE_FILE, github_versions)
 
-    if not args.skip_github and not args.build_args_file:
+    if not args.skip_github and not args.build_args_file and len(build_args) == 0:
         logger.info(f"Reading GitHub versions")
         build_args = get_github_build_args(github_versions)
 
@@ -101,55 +103,89 @@ def get_common_build_args(args, github_versions: dict) -> list:
     return [f"{key}={val}" for key, val in build_args.items()]
 
 
-class Image(object):
-    def __init__(self, containerfile: str, pushspec: str, build_args: list):
-        self._containerfile = containerfile
-        self._pushspec = pushspec
-        src = f"{GIT_REPO}/tree/main/{containerfile}"
-        self._build_args = build_args + [f"CONTAINERFILE_SOURCE={src}"]
+@dataclass
+class Image:
+    containerfile: str
+    pushspec: str
+    build_args: list
+
+    def __post_init__(self):
+        src = f"{GIT_REPO}/tree/main/{self.containerfile}"
+        self.build_args = self.build_args + [f"CONTAINERFILE_SOURCE={src}"]
 
     def containerfile_exists(self):
-        return os.path.exists(self._containerfile) and os.path.isfile(
-            self._containerfile
-        )
+        return os.path.exists(self.containerfile) and os.path.isfile(self.containerfile)
 
     def __str__(self):
-        return f"{self._containerfile} - ({self._pushspec})"
+        return f"{self.containerfile} - ({self.pushspec})"
 
     def build(self):
         args = [
             "podman",
             "build",
             "--tag",
-            self._pushspec,
+            self.pushspec,
             "--file",
-            self._containerfile,
+            self.containerfile,
         ]
 
-        for build_arg in self._build_args:
+        for build_arg in self.build_args:
             args.append("--build-arg")
             args.append(build_arg)
 
-        build_context = os.path.dirname(self._containerfile)
+        build_context = os.path.dirname(self.containerfile)
         build_context = f"./{build_context}/"
 
         args.append(build_context)
 
-        logger.info(f"Building {self._containerfile}")
+        logger.info(f"Building {self.containerfile}")
         logger.info(f"$ {' '.join(args)}")
         subprocess.run(args).check_returncode()
 
     def push(self, authfile: str):
-        args = ["podman", "push", "--authfile", authfile, self._pushspec]
-        logger.info(f"Pushing {self._pushspec}")
+        args = ["podman", "push", "--authfile", authfile, self.pushspec]
+        logger.info(f"Pushing {self.pushspec}")
         logger.info(f"$ {' '.join(args)}")
         subprocess.run(args).check_returncode()
 
     def clear(self):
-        args = ["podman", "image", "rm", self._pushspec]
-        logger.info(f"Clearing {self._pushspec}")
+        args = ["podman", "image", "rm", self.pushspec]
+        logger.info(f"Clearing {self.pushspec}")
         logger.info(f"$ {' '.join(args)}")
         subprocess.run(args).check_returncode()
+
+    def get_base_images(self):
+        build_arg_dict = {}
+        for arg in self.build_args:
+            key, val = arg.split("=")
+            build_arg_dict[key] = val
+
+        aliases = set()
+        base_images = set()
+
+        with open(self.containerfile) as containerfile:
+            from_lines = [
+                line.strip() for line in containerfile if line.startswith("FROM")
+            ]
+
+        for line in from_lines:
+            if " as " in line:
+                aliases.add(line.split(" as ")[1])
+            elif " AS " in line:
+                aliases.add(line.split(" AS ")[1])
+
+        for line in from_lines:
+            if line.split(" ")[1] in aliases:
+                continue
+
+            for key, val in build_arg_dict.items():
+                if key in line:
+                    inline_key = "$" + "{" + key + "}"
+                    line = line.replace(inline_key, val)
+            base_images.add(line.split(" ")[1])
+
+        return base_images
+
 
 
 def main(args):
@@ -221,16 +257,6 @@ def main(args):
             common_build_args + ["FEDORA_VERSION=40"],
         ),
         Image(
-            "ocp-ssh-debug/Containerfile",
-            "quay.io/zzlotnik/testing:ssh-debug-pod",
-            common_build_args + ["FEDORA_VERSION=40"],
-        ),
-        Image(
-            "devex/Containerfile.buildah",
-            "quay.io/zzlotnik/devex:buildah",
-            common_build_args,
-        ),
-        Image(
             "fedora-coreos/Containerfile",
             "quay.io/zzlotnik/os-images:fedora-coreos",
             common_build_args + ["FEDORA_VERSION=39"],
@@ -247,6 +273,31 @@ def main(args):
         ),
     ]
 
+    standalone_images = [
+        Image(
+            "fedora-coreos/Containerfile",
+            "quay.io/zzlotnik/os-images:fedora-coreos",
+            common_build_args + ["FEDORA_VERSION=39"],
+        ),
+        Image(
+            "ocp-ssh-debug/Containerfile",
+            "quay.io/zzlotnik/testing:ssh-debug-pod",
+            common_build_args + ["FEDORA_VERSION=40"],
+        ),
+        Image(
+            "devex/Containerfile.buildah",
+            "quay.io/zzlotnik/devex:buildah",
+            common_build_args,
+        ),
+    ]
+
+    transient_images = frozenset(
+        [
+            "quay.io/zzlotnik/toolbox:tools-fedora-39",
+            "quay.io/zzlotnik/toolbox:tools-fedora-40",
+        ]
+    )
+
     for image in images:
         if image.containerfile_exists():
             logger.info(f"Found containerfile for {image}")
@@ -257,10 +308,10 @@ def main(args):
     for image in images:
         image.build()
 
-        if args.authfile:
+        if args.authfile and image.pushspec not in transient_images:
             image.push(args.authfile)
 
-        if "CI" in os.environ:
+        if "CI" in os.environ and image.pushspec not in transient_images:
             image.clear()
 
     if os.path.exists(BUILD_ARGS_CACHE_FILE):
@@ -319,7 +370,7 @@ if __name__ == "__main__":
         dest="skip_openshift",
         action="store_true",
         default=False,
-        help="Skip GitHub version check",
+        help="Skip OpenShift version check",
     )
 
     parser.add_argument(
