@@ -81,7 +81,7 @@ def get_common_build_args(args, github_versions: dict) -> list:
         build_args = load_build_args_from_file(args.build_args_file, github_versions)
 
     if os.path.isfile(BUILD_ARGS_CACHE_FILE) and not args.build_args_file:
-        build_args = load_build_args_From_file(BUILD_ARGS_CACHE_FILE, github_versions)
+        build_args = load_build_args_from_file(BUILD_ARGS_CACHE_FILE, github_versions)
 
     if not args.skip_github and not args.build_args_file:
         logger.info(f"Reading GitHub versions")
@@ -107,6 +107,14 @@ class Image(object):
         self._pushspec = pushspec
         src = f"{GIT_REPO}/tree/main/{containerfile}"
         self._build_args = build_args + [f"CONTAINERFILE_SOURCE={src}"]
+
+    def containerfile_exists(self):
+        return os.path.exists(self._containerfile) and os.path.isfile(
+            self._containerfile
+        )
+
+    def __str__(self):
+        return f"{self._containerfile} - ({self._pushspec})"
 
     def build(self):
         args = [
@@ -235,7 +243,12 @@ def main(args):
     ]
 
     for image in images:
-        image.build()
+        if image.containerfile_exists():
+            logger.info(f"Found containerfile for {image}")
+        else:
+            logger.error(f"Missing containerfile for {image}")
+            sys.exit(1)
+
 
         if args.authfile:
             image.push(args.authfile)
@@ -249,6 +262,14 @@ def main(args):
 
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.DEBUG)
+    console = logging.StreamHandler()
+    console.setLevel(logging.DEBUG)
+
+    formatter = logging.Formatter("%(name)-12s: %(levelname)-8s %(message)s")
+    console.setFormatter(formatter)
+    logging.getLogger(__file__).addHandler(console)
+
     parser = argparse.ArgumentParser(
         prog=os.path.basename(__file__),
         description="Builds and pushes the Containerfiles found in this repository",
