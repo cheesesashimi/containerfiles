@@ -73,7 +73,8 @@ for:
   OpenShift [Machine Config Operator](https://github.com/openshift/machine-config-operator). These tools
   are not intended to be used by an end-user of the OpenShift platform and can
   easily lead to cluster instability when used incorrectly. You have been
-  warned :smile:.
+  warned :smile:. This image also includes the [OpenShift cluster debug
+  tools](https://github.com/openshift/cluster-debug-tools) which may be useful.
 
 ## Kubernetes Tools
 

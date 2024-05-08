@@ -4,6 +4,9 @@ FROM registry.fedoraproject.org/fedora-toolbox:${FEDORA_VERSION} AS base
 ARG FEDORA_VERSION=${FEDORA_VERSION}
 FROM quay.io/zzlotnik/toolbox:tools-fedora-${FEDORA_VERSION} AS tools
 
+ARG FEDORA_VERSION=${FEDORA_VERSION}
+FROM quay.io/zzlotnik/toolbox:cluster-debug-tools-fedora-${FEDORA_VERSION} AS cluster-debug-tools
+
 FROM base AS final
 ARG FEDORA_VERSION=${FEDORA_VERSION}
 COPY --from=tools /rpms /rpms
@@ -65,6 +68,7 @@ COPY --from=tools /oc/kubectl /usr/local/bin/kubectl
 COPY --from=tools /oc/oc /usr/local/bin/oc
 COPY --from=tools /omc/omc /usr/local/bin/omc
 COPY --from=tools /yq/yq /usr/local/bin/yq
+COPY --from=cluster-debug-tools /cluster-debug-tools /usr/local/bin/
 
 ARG GIT_REVISION=dirty
 ARG GIT_REPO=unknown

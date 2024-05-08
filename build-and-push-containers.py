@@ -125,12 +125,17 @@ class Image:
     def __post_init__(self):
         src = f"{GIT_REPO}/tree/main/{self.containerfile}"
         self.build_args = self.build_args + [f"CONTAINERFILE_SOURCE={src}"]
+        self._build_context = os.path.dirname(self.containerfile)
+
+    @property
+    def build_context(self) -> str:
+        return self._build_context
 
     def containerfile_exists(self):
         return os.path.exists(self.containerfile) and os.path.isfile(self.containerfile)
 
     def __str__(self):
-        return f"{self.containerfile} - ({self.pushspec})"
+        return self.containerfile
 
     def build(self):
         args = [
@@ -146,8 +151,7 @@ class Image:
             args.append("--build-arg")
             args.append(build_arg)
 
-        build_context = os.path.dirname(self.containerfile)
-        build_context = f"./{build_context}/"
+        build_context = f"./{self.build_context}/"
 
         args.append(build_context)
 
@@ -243,6 +247,16 @@ def main(args):
     fedora_39_images, fedora_40_images = group_images_by_fedora_version(
         [
             Image(
+                "toolbox/Containerfile.cluster-debug-tools",
+                "quay.io/zzlotnik/toolbox:cluster-debug-tools-fedora-39",
+                common_build_args + ["FEDORA_VERSION=39"],
+            ),
+            Image(
+                "toolbox/Containerfile.cluster-debug-tools",
+                "quay.io/zzlotnik/toolbox:cluster-debug-tools-fedora-40",
+                common_build_args + ["FEDORA_VERSION=40"],
+            ),
+            Image(
                 "toolbox/Containerfile.tools",
                 "quay.io/zzlotnik/toolbox:tools-fedora-39",
                 common_build_args + ["FEDORA_VERSION=39"],
@@ -327,6 +341,8 @@ def main(args):
         [
             "quay.io/zzlotnik/toolbox:tools-fedora-39",
             "quay.io/zzlotnik/toolbox:tools-fedora-40",
+            "quay.io/zzlotnik/toolbox:cluster-debug-tools-fedora-39",
+            "quay.io/zzlotnik/toolbox:cluster-debug-tools-fedora-40",
         ]
     )
 
@@ -335,29 +351,36 @@ def main(args):
     for image_batch in image_batches:
         for image in image_batch:
             if image.containerfile_exists():
-                logger.info(f"Found containerfile for {image}")
+                logger.info(f"Containerfile source: {image.containerfile}")
+                logger.info(f"Build context: {image.build_context}")
+                logger.info(f"Pushspec: {image.pushspec}")
+                logger.info(f"Base images: {image.get_base_images()}")
+                logger.info(f"Build args (may not be accurate): {image.build_args}")
+                logger.info(f"Is transient: {image.pushspec in transient_images}")
+                logger.info("")
             else:
                 logger.error(f"Missing containerfile for {image}")
                 sys.exit(1)
 
-    for image_batch in image_batches:
-        batch_base_images = set()
+    if not args.validate_only:
+        for image_batch in image_batches:
+            batch_base_images = set()
 
-        for image in image_batch:
-            batch_base_images.update(image.get_base_images())
-            image.build()
+            for image in image_batch:
+                batch_base_images.update(image.get_base_images())
+                image.build()
 
-            if args.authfile and image.pushspec not in transient_images:
-                image.push(args.authfile)
+                if args.authfile and image.pushspec not in transient_images:
+                    image.push(args.authfile)
 
-            if args.clear_images and image.pushspec not in transient_images:
-                image.clear()
+                if args.clear_images and image.pushspec not in transient_images:
+                    image.clear()
 
-        if args.clear_images:
-            for base_image in batch_base_images:
-                clear_image_pullspec(base_image)
+            if args.clear_images:
+                for base_image in batch_base_images:
+                    clear_image_pullspec(base_image)
 
-    if os.path.exists(BUILD_ARGS_CACHE_FILE):
+    if os.path.exists(BUILD_ARGS_CACHE_FILE) and not args.no_clear_build_args_cache:
         os.remove(BUILD_ARGS_CACHE_FILE)
         logger.info(f"Removed {BUILD_ARGS_CACHE_FILE}")
 
@@ -430,6 +453,22 @@ if __name__ == "__main__":
         action="store",
         default=None,
         help='Path to a build args JSON file containing build args in the form of {"arg1": "val1", "arg2": "val2"}',
+    )
+
+    parser.add_argument(
+        "--validate-only",
+        dest="validate_only",
+        action="store_true",
+        default=False,
+        help="Validates that the Containerfiles are present and prints all data from them, excluding build args.",
+    )
+
+    parser.add_argument(
+        "--no-clear-build-args-cache",
+        dest="no_clear_build_args_cache",
+        action="store_true",
+        default=False,
+        help="Skips removing the build args cache file at the end.",
     )
 
     args = parser.parse_args()
