@@ -1,11 +1,13 @@
 ARG FEDORA_VERSION=39
 FROM quay.io/fedora/fedora-coreos:stable AS base
 
-FROM quay.io/zzlotnik/toolbox:tools-fedora-${FEDORA_VERSION} AS tools
+FROM quay.io/zzlotnik/toolbox:tools-fetcher AS tools-fetcher
+
+FROM quay.io/zzlotnik/toolbox:copr-fedora-${FEDORA_VERSION} AS copr
 
 FROM base AS final
-COPY --from=tools /etc/yum.repos.d/_copr* /etc/yum.repos.d/
-COPY --from=tools /yq/yq /usr/local/bin/yq
+COPY --from=copr /etc/yum.repos.d/_copr* /etc/yum.repos.d/
+COPY --from=tools-fetcher /yq/yq /usr/local/bin/yq
 RUN --mount=type=cache,target=/var/cache/rpm-ostree,z \
 	rpm-ostree install -y \
 		bat \

@@ -1,16 +1,15 @@
 ARG FEDORA_VERSION=39
 FROM registry.fedoraproject.org/fedora-toolbox:${FEDORA_VERSION} AS base
 
-ARG FEDORA_VERSION=${FEDORA_VERSION}
-FROM quay.io/zzlotnik/toolbox:tools-fedora-${FEDORA_VERSION} AS tools
+FROM quay.io/zzlotnik/toolbox:tools-fetcher AS tools-fetcher
 
 FROM base AS final
-COPY --from=tools /dyff/dyff /usr/local/bin/
-COPY --from=tools /k9s/k9s /usr/local/bin/k9s
-COPY --from=tools /oc/kubectl /usr/local/bin/kubectl
-COPY --from=tools /oc/oc /usr/local/bin/oc
-COPY --from=tools /omc/omc /usr/local/bin/omc
-COPY --from=tools /yq/yq /usr/local/bin/yq
+COPY --from=tools-fetcher /dyff/dyff /usr/local/bin/
+COPY --from=tools-fetcher /k9s/k9s /usr/local/bin/k9s
+COPY --from=tools-fetcher /oc/kubectl /usr/local/bin/kubectl
+COPY --from=tools-fetcher /oc/oc /usr/local/bin/oc
+COPY --from=tools-fetcher /omc/omc /usr/local/bin/omc
+COPY --from=tools-fetcher /yq/yq /usr/local/bin/yq
 
 ARG GIT_REVISION=dirty
 ARG GIT_REPO=unknown

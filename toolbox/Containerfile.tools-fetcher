@@ -1,7 +1,8 @@
-ARG FEDORA_VERSION=39
-FROM registry.fedoraproject.org/fedora-toolbox:${FEDORA_VERSION}
+FROM registry.fedoraproject.org/fedora-toolbox:40
 
 COPY get-arch.py /usr/local/bin/get-arch
+
+SHELL ["option", "-o", "pipefail"]
 
 ARG DYFF_VERSION=1.7.1
 WORKDIR /dyff
@@ -42,9 +43,6 @@ RUN curl -Lo /rpms/dive.rpm "https://github.com/wagoodman/dive/releases/download
 
 ARG GOLANGCI_LINT_VERSION=1.57.2
 RUN curl -Lo /rpms/golangci-lint.rpm "https://github.com/golangci/golangci-lint/releases/download/v${GOLANGCI_LINT_VERSION}/golangci-lint-${GOLANGCI_LINT_VERSION}-linux-$(get-arch --amd64 --arm64).rpm"
-
-RUN --mount=type=cache,target=/var/cache/dnf,z \
-	dnf copr enable -y atim/starship
 
 ARG GIT_REVISION=dirty
 ARG GIT_REPO=unknown

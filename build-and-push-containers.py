@@ -244,26 +244,29 @@ def main(args):
     common_build_args = get_common_build_args(args, github_versions)
     logger.info(f"Applying common build args to all builds: {common_build_args}")
 
+    transient_images_to_build = [
+        Image(
+            "toolbox/Containerfile.cluster-debug-tools",
+            "quay.io/zzlotnik/toolbox:cluster-debug-tools",
+            common_build_args,
+        ),
+        Image(
+            "toolbox/Containerfile.tools-fetcher",
+            "quay.io/zzlotnik/toolbox:tools-fetcher",
+            common_build_args,
+        ),
+    ]
+
     fedora_39_images, fedora_40_images = group_images_by_fedora_version(
         [
             Image(
-                "toolbox/Containerfile.cluster-debug-tools",
-                "quay.io/zzlotnik/toolbox:cluster-debug-tools-fedora-39",
+                "toolbox/Containerfile.copr",
+                "quay.io/zzlotnik/toolbox:copr-fedora-39",
                 common_build_args + ["FEDORA_VERSION=39"],
             ),
             Image(
-                "toolbox/Containerfile.cluster-debug-tools",
-                "quay.io/zzlotnik/toolbox:cluster-debug-tools-fedora-40",
-                common_build_args + ["FEDORA_VERSION=40"],
-            ),
-            Image(
-                "toolbox/Containerfile.tools",
-                "quay.io/zzlotnik/toolbox:tools-fedora-39",
-                common_build_args + ["FEDORA_VERSION=39"],
-            ),
-            Image(
-                "toolbox/Containerfile.tools",
-                "quay.io/zzlotnik/toolbox:tools-fedora-40",
+                "toolbox/Containerfile.copr",
+                "quay.io/zzlotnik/toolbox:copr-fedora-40",
                 common_build_args + ["FEDORA_VERSION=40"],
             ),
             Image(
@@ -316,11 +319,6 @@ def main(args):
                 "quay.io/zzlotnik/os-images:fedora-coreos",
                 common_build_args + ["FEDORA_VERSION=39"],
             ),
-            Image(
-                "ocp-ssh-debug/Containerfile",
-                "quay.io/zzlotnik/testing:ssh-debug-pod",
-                common_build_args + ["FEDORA_VERSION=40"],
-            ),
         ]
     )
 
@@ -335,18 +333,26 @@ def main(args):
             "quay.io/zzlotnik/devex:epel",
             common_build_args,
         ),
+        Image(
+            "ocp-ssh-debug/Containerfile",
+            "quay.io/zzlotnik/testing:ssh-debug-pod",
+            common_build_args,
+        ),
     ]
 
     transient_images = frozenset(
         [
-            "quay.io/zzlotnik/toolbox:tools-fedora-39",
-            "quay.io/zzlotnik/toolbox:tools-fedora-40",
-            "quay.io/zzlotnik/toolbox:cluster-debug-tools-fedora-39",
-            "quay.io/zzlotnik/toolbox:cluster-debug-tools-fedora-40",
+            "quay.io/zzlotnik/toolbox:cluster-debug-tools",
+            "quay.io/zzlotnik/toolbox:tools-fetcher",
         ]
     )
 
-    image_batches = [fedora_39_images, fedora_40_images, standalone_images]
+    image_batches = [
+        transient_images_to_build,
+        fedora_39_images,
+        fedora_40_images,
+        standalone_images,
+    ]
 
     for image_batch in image_batches:
         for image in image_batch:
@@ -378,7 +384,8 @@ def main(args):
 
             if args.clear_images:
                 for base_image in batch_base_images:
-                    clear_image_pullspec(base_image)
+                    if base_image not in transient_images:
+                        clear_image_pullspec(base_image)
 
     if os.path.exists(BUILD_ARGS_CACHE_FILE) and not args.no_clear_build_args_cache:
         os.remove(BUILD_ARGS_CACHE_FILE)
