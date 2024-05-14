@@ -32,6 +32,7 @@ jobs:
     - name: Build and Push
       env:
         PUSH_SECRET: ${{ secrets.QUAY_PUSH_CREDS }}
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |-
         #!/usr/bin/env bash
         authfile_dir="$(mktemp -d)"

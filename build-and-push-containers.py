@@ -7,13 +7,13 @@ import os
 import json
 import logging
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
 
 logger = logging.getLogger(__name__)
 
-BUILD_ARGS_CACHE_FILE = ".build-args.json"
 GIT_REPO = "https://github.com/cheesesashimi/containerfiles"
 VERSION_REGEX = re.compile(r"^v[0-9].*$")
 
@@ -33,27 +33,36 @@ def get_git_commit_sha() -> str:
     return cmd.stdout.decode("utf-8").strip()
 
 
-def trim_vee(arg: str) -> str:
-    if not VERSION_REGEX.match(arg):
-        return arg
-
-    return arg[1:]
+def get_latest_commit_from_github(org_and_repo: str, branch: str) -> str:
+    path = f"/repos/{org_and_repo}/commits/{branch}"
+    results = curl_or_github_cli(path)
+    return results["sha"]
 
 
 def get_sha_for_github_tag(org_and_repo: str, tag: str) -> str:
-    url = f"https://api.github.com/repos/{org_and_repo}/git/ref/tags/{tag}"
-    cmd = subprocess.run(["curl", "-s", url], capture_output=True)
-    cmd.check_returncode()
-    results = json.loads(cmd.stdout)
+    path = f"/repos/{org_and_repo}/git/ref/tags/{tag}"
+    results = curl_or_github_cli(path)
     return results["object"]["sha"]
 
 
 def get_latest_github_release_version(org_and_repo: str) -> tuple[str, str]:
-    url = f"https://api.github.com/repos/{org_and_repo}/releases/latest"
-    cmd = subprocess.run(["curl", "-s", url], capture_output=True)
-    cmd.check_returncode()
-    results = json.loads(cmd.stdout)
+    path = f"/repos/{org_and_repo}/releases/latest"
+    results = curl_or_github_cli(path)
     return results["tag_name"]
+
+
+def curl_or_github_cli(path: str) -> dict:
+    url = f"https://api.github.com{path}"
+    args = ["curl", "-s", url]
+    if shutil.which("gh"):
+        logger.info(f"Using GitHub CLI for request for {path}")
+        args = ["gh", "api", path]
+    else:
+        logger.info(f"Using curl for request {path}")
+
+    cmd = subprocess.run(args, capture_output=True)
+    cmd.check_returncode()
+    return json.loads(cmd.stdout)
 
 
 def clear_image_pullspec(pullspec):
@@ -67,6 +76,23 @@ def clear_image_pullspec(pullspec):
 
     logger.info(f"Disk space after clear:")
     subprocess.run(["df", "-h"]).check_returncode()
+
+
+def get_github_labels_for_repo(org_and_repo: str, tag: str = None, commit: str = None):
+    org, repo = org_and_repo.split("/")
+    url_label = f"com.github.{org}.{repo}"
+
+    out = [
+        f"{url_label}=https://github.com/{org_and_repo}",
+    ]
+
+    if tag:
+        out.append(f"{url_label}.tag={tag}")
+
+    if commit:
+        out.append(f"{url_label}.ref={commit}")
+
+    return out
 
 
 @dataclass
@@ -85,26 +111,26 @@ class GithubPackage:
             self._latest_tag = ""
             self._commit = ""
 
-    def to_dict(self):
-        return {
-            "name": self.name,
-            "org_and_repo": self.org_and_repo,
-            "commit": self.commit(),
-            "latest_tag": self.latest_tag(),
-        }
-
     def delete_cachefile(self):
         os.remove(self._cachefile_name)
 
-    def cache(self):
+    def _cache(self):
+        data = {
+            "name": self.name,
+            "org_and_repo": self.org_and_repo,
+            "commit": self._commit,
+            "latest_tag": self._latest_tag,
+        }
+
         with open(self._cachefile_name, "w") as cachefile:
-            json.dump(self.to_dict(), cachefile)
+            json.dump(data, cachefile)
 
     def latest_tag(self) -> str:
         if self._latest_tag != "":
             return self._latest_tag
 
         self._latest_tag = get_latest_github_release_version(self.org_and_repo)
+        self._cache()
         return self._latest_tag
 
     def commit(self) -> str:
@@ -112,21 +138,20 @@ class GithubPackage:
             return self._commit
 
         self._commit = get_sha_for_github_tag(self.org_and_repo, self.latest_tag())
+        self._cache()
         return self._commit
 
     def build_arg(self) -> str:
         upper_name = self.name.upper().replace("-", "_")
-        trimmed = trim_vee(self.latest_tag())
-        return f"{upper_name}_VERSION={trimmed}"
+        tag = self.latest_tag()
+        if VERSION_REGEX.match(tag):
+            tag = tag[1:]
+        return f"{upper_name}_VERSION={tag}"
 
     def labels(self) -> str:
-        org, repo = self.org_and_repo.split("/")
-        url_label = f"com.github.{org}.{repo}"
-        return [
-            f"{url_label}=https://github.com/{self.org_and_repo}",
-            f"{url_label}.tag={self.latest_tag()}",
-            f"{url_label}.ref={self.commit()}",
-        ]
+        return get_github_labels_for_repo(
+            self.org_and_repo, self.latest_tag(), self.commit()
+        )
 
 
 @dataclass
@@ -235,6 +260,12 @@ def get_toolbox_labels(container_name, fedora_version):
     ]
 
 
+def get_cluster_debug_tools_labels() -> list:
+    org_and_repo = "openshift/cluster-debug-tools"
+    commit = get_latest_commit_from_github(org_and_repo, "master")
+    return get_github_labels_for_repo(org_and_repo, None, commit)
+
+
 def main(args):
     if args.authfile != "" and args.push_only:
         logger.error(f"Cannot combine --authfile and --push-only")
@@ -257,22 +288,26 @@ def main(args):
         GithubPackage("zacks-helpers", "cheesesashimi/zacks-openshift-helpers"),
     ]
 
-    for package in github_packages:
-        package.cache()
-
-    github_build_args = [package.build_arg() for package in github_packages]
     github_build_labels = []
     for package in github_packages:
         github_build_labels += package.labels()
+
+    github_build_args = [package.build_arg() for package in github_packages]
 
     ocp_version = get_latest_stable_openshift_release()
     github_build_args.append(f"OCP_VERSION={ocp_version}")
     github_build_labels.append(f"com.openshift.version={ocp_version}")
 
+    cluster_debug_tools_ref = get_latest_commit_from_github(
+        "openshift/cluster-debug-tools", "master"
+    )
+
     transient_images_to_build = [
         Image(
             "toolbox/Containerfile.cluster-debug-tools",
             "quay.io/zzlotnik/toolbox:cluster-debug-tools",
+            [],
+            get_cluster_debug_tools_labels(),
         ),
         Image(
             "toolbox/Containerfile.tools-fetcher",
@@ -398,9 +433,10 @@ def main(args):
                     if base_image not in transient_images:
                         clear_image_pullspec(base_image)
 
-    if os.path.exists(BUILD_ARGS_CACHE_FILE) and not args.no_clear_build_args_cache:
-        os.remove(BUILD_ARGS_CACHE_FILE)
-        logger.info(f"Removed {BUILD_ARGS_CACHE_FILE}")
+    if not args.no_clear_github_cache:
+        for package in github_packages:
+            package.delete_cachefile()
+            logger.info(f"Removed cachefile for {package.name}")
 
 
 if __name__ == "__main__":
@@ -442,22 +478,6 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
-        "--skip-github",
-        dest="skip_github",
-        action="store_true",
-        default=False,
-        help="Skip GitHub version check",
-    )
-
-    parser.add_argument(
-        "--skip-openshift",
-        dest="skip_openshift",
-        action="store_true",
-        default=False,
-        help="Skip OpenShift version check",
-    )
-
-    parser.add_argument(
         "--clear-images",
         dest="clear_images",
         action="store_true",
@@ -482,11 +502,11 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
-        "--no-clear-build-args-cache",
-        dest="no_clear_build_args_cache",
+        "--no-clear-github-cache",
+        dest="no_clear_github_cache",
         action="store_true",
         default=False,
-        help="Skips removing the build args cache file at the end.",
+        help="Skips removing the Github cache files at the end.",
     )
 
     args = parser.parse_args()
