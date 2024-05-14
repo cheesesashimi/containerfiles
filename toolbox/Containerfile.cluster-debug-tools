@@ -13,11 +13,3 @@ RUN GOBIN=/cluster-debug-tools go install github.com/openshift/cluster-debug-too
 
 FROM registry.fedoraproject.org/fedora-toolbox:40 AS final
 COPY --from=builder /cluster-debug-tools /cluster-debug-tools
-
-ARG GIT_REVISION=dirty
-ARG GIT_REPO=unknown
-ARG CONTAINERFILE_SOURCE=unknown
-
-LABEL org.opencontainers.image.url=$GIT_REPO
-LABEL org.opencontainers.image.source=$CONTAINERFILE_SOURCE
-LABEL org.opencontainers.image.revision=$GIT_REVISION

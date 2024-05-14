@@ -4,11 +4,3 @@ FROM registry.fedoraproject.org/fedora:40 AS final
 RUN --mount=type=cache,target=/var/cache/dnf,z \
 	dnf install -y openssh-clients
 COPY --from=tools-fetcher /yq/yq /usr/local/bin/yq
-
-ARG GIT_REVISION=dirty
-ARG GIT_REPO=unknown
-ARG CONTAINERFILE_SOURCE=unknown
-
-LABEL org.opencontainers.image.url=$GIT_REPO
-LABEL org.opencontainers.image.source=$CONTAINERFILE_SOURCE
-LABEL org.opencontainers.image.revision=$GIT_REVISION

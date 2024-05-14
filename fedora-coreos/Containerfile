@@ -35,11 +35,3 @@ RUN --mount=type=cache,target=/var/cache/rpm-ostree,z \
 	# Not removing these files prevents the eza alias from working
 	rm /etc/profile.d/color*.csh /etc/profile.d/color*.sh && \
 	ostree container commit
-
-ARG GIT_REVISION=dirty
-ARG GIT_REPO=unknown
-ARG CONTAINERFILE_SOURCE=unknown
-
-LABEL org.opencontainers.image.url=$GIT_REPO
-LABEL org.opencontainers.image.source=$CONTAINERFILE_SOURCE
-LABEL org.opencontainers.image.revision=$GIT_REVISION

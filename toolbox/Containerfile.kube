@@ -10,18 +10,3 @@ COPY --from=tools-fetcher /oc/kubectl /usr/local/bin/kubectl
 COPY --from=tools-fetcher /oc/oc /usr/local/bin/oc
 COPY --from=tools-fetcher /omc/omc /usr/local/bin/omc
 COPY --from=tools-fetcher /yq/yq /usr/local/bin/yq
-
-ARG GIT_REVISION=dirty
-ARG GIT_REPO=unknown
-ARG CONTAINERFILE_SOURCE=unknown
-ARG FEDORA_VERSION=${FEDORA_VERSION}
-
-LABEL org.opencontainers.image.url=$GIT_REPO
-LABEL org.opencontainers.image.source=$CONTAINERFILE_SOURCE
-LABEL org.opencontainers.image.revision=$GIT_REVISION
-
-LABEL com.github.containers.toolbox="true" \
-      name="zack-kube-toolbox-container" \
-      usage="This image is meant to be used with the toolbox(1) command" \
-      summary="Fedora ${FEDORA_VERSION} version of my kube toolbox container" \
-      maintainer="Zack Zlotnik (zzlotnik@redhat.com)"

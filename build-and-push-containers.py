@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 import argparse
 import os
@@ -16,15 +16,6 @@ logger = logging.getLogger(__name__)
 BUILD_ARGS_CACHE_FILE = ".build-args.json"
 GIT_REPO = "https://github.com/cheesesashimi/containerfiles"
 VERSION_REGEX = re.compile(r"^v[0-9].*$")
-
-
-def get_github_build_args(github_versions: dict) -> dict:
-    out = {}
-
-    for arg, org_and_repo in github_versions.items():
-        out[arg] = get_latest_github_release_version(org_and_repo)
-
-    return out
 
 
 def get_latest_stable_openshift_release() -> str:
@@ -49,58 +40,20 @@ def trim_vee(arg: str) -> str:
     return arg[1:]
 
 
-def get_latest_github_release_version(org_and_repo: str) -> str:
+def get_sha_for_github_tag(org_and_repo: str, tag: str) -> str:
+    url = f"https://api.github.com/repos/{org_and_repo}/git/ref/tags/{tag}"
+    cmd = subprocess.run(["curl", "-s", url], capture_output=True)
+    cmd.check_returncode()
+    results = json.loads(cmd.stdout)
+    return results["object"]["sha"]
+
+
+def get_latest_github_release_version(org_and_repo: str) -> tuple[str, str]:
     url = f"https://api.github.com/repos/{org_and_repo}/releases/latest"
     cmd = subprocess.run(["curl", "-s", url], capture_output=True)
     cmd.check_returncode()
-    tag_name = json.loads(cmd.stdout)["tag_name"]
-    trimmed = trim_vee(tag_name)
-    logger.info(f"Found {tag_name} for {org_and_repo}, cleaning to {trimmed}")
-    return trimmed
-
-
-def load_build_args_from_file(path: str, github_versions: dict) -> dict:
-    if path == BUILD_ARGS_CACHE_FILE:
-        logger.info(f"Reusing cached build args from {path}")
-    else:
-        logger.info(f"Reading build args from {path}")
-    with open(path, "r") as build_args_file:
-        build_args = json.load(build_args_file)
-
-    for arg, val in build_args.items():
-        if arg in github_versions:
-            build_args[arg] = trim_vee(val)
-
-    return build_args
-
-
-def get_common_build_args(args, github_versions: dict) -> list:
-    if args.push_only:
-        return []
-
-    build_args = {}
-    if args.build_args_file:
-        build_args = load_build_args_from_file(args.build_args_file, github_versions)
-
-    if os.path.isfile(BUILD_ARGS_CACHE_FILE) and not args.build_args_file:
-        build_args = load_build_args_from_file(BUILD_ARGS_CACHE_FILE, github_versions)
-
-    if not args.skip_github and not args.build_args_file and len(build_args) == 0:
-        logger.info(f"Reading GitHub versions")
-        build_args = get_github_build_args(github_versions)
-
-    if not args.skip_openshift and not args.build_args_file:
-        build_args["OCP_VERSION"] = get_latest_stable_openshift_release()
-
-    build_args["GIT_REPO"] = GIT_REPO
-
-    build_args["GIT_REVISION"] = get_git_commit_sha()
-
-    with open(BUILD_ARGS_CACHE_FILE, "w") as cache_file:
-        logger.info(f"Caching build args to {BUILD_ARGS_CACHE_FILE}")
-        json.dump(build_args, cache_file)
-
-    return [f"{key}={val}" for key, val in build_args.items()]
+    results = json.loads(cmd.stdout)
+    return results["tag_name"]
 
 
 def clear_image_pullspec(pullspec):
@@ -117,15 +70,79 @@ def clear_image_pullspec(pullspec):
 
 
 @dataclass
+class GithubPackage:
+    name: str
+    org_and_repo: str
+
+    def __post_init__(self):
+        self._cachefile_name = f"{self.name}.json"
+        if os.path.exists(self._cachefile_name):
+            with open(self._cachefile_name, "r") as cachefile:
+                loaded = json.load(cachefile)
+                self._latest_tag = loaded.get("latest_tag", "")
+                self._commit = loaded.get("commit", "")
+        else:
+            self._latest_tag = ""
+            self._commit = ""
+
+    def to_dict(self):
+        return {
+            "name": self.name,
+            "org_and_repo": self.org_and_repo,
+            "commit": self.commit(),
+            "latest_tag": self.latest_tag(),
+        }
+
+    def delete_cachefile(self):
+        os.remove(self._cachefile_name)
+
+    def cache(self):
+        with open(self._cachefile_name, "w") as cachefile:
+            json.dump(self.to_dict(), cachefile)
+
+    def latest_tag(self) -> str:
+        if self._latest_tag != "":
+            return self._latest_tag
+
+        self._latest_tag = get_latest_github_release_version(self.org_and_repo)
+        return self._latest_tag
+
+    def commit(self) -> str:
+        if self._commit != "":
+            return self._commit
+
+        self._commit = get_sha_for_github_tag(self.org_and_repo, self.latest_tag())
+        return self._commit
+
+    def build_arg(self) -> str:
+        upper_name = self.name.upper().replace("-", "_")
+        trimmed = trim_vee(self.latest_tag())
+        return f"{upper_name}_VERSION={trimmed}"
+
+    def labels(self) -> str:
+        org, repo = self.org_and_repo.split("/")
+        url_label = f"com.github.{org}.{repo}"
+        return [
+            f"{url_label}=https://github.com/{self.org_and_repo}",
+            f"{url_label}.tag={self.latest_tag()}",
+            f"{url_label}.ref={self.commit()}",
+        ]
+
+
+@dataclass
 class Image:
     containerfile: str
     pushspec: str
-    build_args: list
+    build_args: list = field(default_factory=list)
+    labels: list = field(default_factory=list)
 
     def __post_init__(self):
-        src = f"{GIT_REPO}/tree/main/{self.containerfile}"
-        self.build_args = self.build_args + [f"CONTAINERFILE_SOURCE={src}"]
+        git_ref = get_git_commit_sha()
+        src = f"{GIT_REPO}/blob/{git_ref}/{self.containerfile}"
         self._build_context = os.path.dirname(self.containerfile)
+        self.labels.append(f"org.opencontainers.image.url={GIT_REPO}")
+        self.labels.append(f"org.opencontainers.image.source={src}")
+        self.labels.append(f"org.opencontainers.image.revision={git_ref}")
 
     @property
     def build_context(self) -> str:
@@ -150,6 +167,10 @@ class Image:
         for build_arg in self.build_args:
             args.append("--build-arg")
             args.append(build_arg)
+
+        for label in self.labels:
+            args.append("--label")
+            args.append(label)
 
         build_context = f"./{self.build_context}/"
 
@@ -204,6 +225,16 @@ class Image:
         return base_images
 
 
+def get_toolbox_labels(container_name, fedora_version):
+    return [
+        'com.github.containers.toolbox="true"',
+        f"name={container_name}",
+        'usage="This image is meant to be used with the toolbox(1) command"',
+        f"summary=Fedora {fedora_version} of {container_name}",
+        'maintainer="Zack Zlotnik (zzlotnik@redhat.com)"',
+    ]
+
+
 def main(args):
     if args.authfile != "" and args.push_only:
         logger.error(f"Cannot combine --authfile and --push-only")
@@ -216,31 +247,38 @@ def main(args):
 
         logger.info(f"Will push using creds in {args.authfile}")
 
-    github_versions = {
-        "ANTIBODY_VERSION": "getantibody/antibody",
-        "CHEZMOI_VERSION": "twpayne/chezmoi",
-        "DIVE_VERSION": "wagoodman/dive",
-        "DYFF_VERSION": "homeport/dyff",
-        "GOLANGCI_LINT_VERSION": "golangci/golangci-lint",
-        "K9S_VERSION": "derailed/k9s",
-        "OMC_VERSION": "gmeghnag/omc",
-        "YQ_VERSION": "mikefarah/yq",
-        "ZACKS_HELPERS_VERSION": "cheesesashimi/zacks-openshift-helpers",
-    }
+    github_packages = [
+        GithubPackage("antibody", "getantibody/antibody"),
+        GithubPackage("chezmoi", "twpayne/chezmoi"),
+        GithubPackage("dive", "wagoodman/dive"),
+        GithubPackage("golangci-lint", "golangci/golangci-lint"),
+        GithubPackage("k9s", "derailed/k9s"),
+        GithubPackage("omc", "gmeghnag/omc"),
+        GithubPackage("zacks-helpers", "cheesesashimi/zacks-openshift-helpers"),
+    ]
 
-    common_build_args = get_common_build_args(args, github_versions)
-    logger.info(f"Applying common build args to all builds: {common_build_args}")
+    for package in github_packages:
+        package.cache()
+
+    github_build_args = [package.build_arg() for package in github_packages]
+    github_build_labels = []
+    for package in github_packages:
+        github_build_labels += package.labels()
+
+    ocp_version = get_latest_stable_openshift_release()
+    github_build_args.append(f"OCP_VERSION={ocp_version}")
+    github_build_labels.append(f"com.openshift.version={ocp_version}")
 
     transient_images_to_build = [
         Image(
             "toolbox/Containerfile.cluster-debug-tools",
             "quay.io/zzlotnik/toolbox:cluster-debug-tools",
-            common_build_args,
         ),
         Image(
             "toolbox/Containerfile.tools-fetcher",
             "quay.io/zzlotnik/toolbox:tools-fetcher",
-            common_build_args,
+            github_build_args,
+            github_build_labels,
         ),
     ]
 
@@ -252,22 +290,25 @@ def main(args):
         Image(
             "toolbox/Containerfile.base",
             "quay.io/zzlotnik/toolbox:base-fedora-39",
-            common_build_args + ["FEDORA_VERSION=39"],
+            ["FEDORA_VERSION=39"],
+            get_toolbox_labels("base", "39"),
         ),
         Image(
             "toolbox/Containerfile.kube",
             "quay.io/zzlotnik/toolbox:kube-fedora-39",
-            common_build_args + ["FEDORA_VERSION=39"],
+            ["FEDORA_VERSION=39"],
+            get_toolbox_labels("kube", "39"),
         ),
         Image(
             "toolbox/Containerfile.mco",
             "quay.io/zzlotnik/toolbox:mco-fedora-39",
-            common_build_args + ["FEDORA_VERSION=39"],
+            ["FEDORA_VERSION=39"],
+            get_toolbox_labels("mco", "39"),
         ),
         Image(
             "fedora-silverblue/Containerfile",
             "quay.io/zzlotnik/os-images:fedora-silverblue-39",
-            common_build_args + ["FEDORA_VERSION=39"],
+            ["FEDORA_VERSION=39"],
         ),
     ]
 
@@ -275,27 +316,30 @@ def main(args):
         Image(
             "toolbox/Containerfile.base",
             "quay.io/zzlotnik/toolbox:base-fedora-40",
-            common_build_args + ["FEDORA_VERSION=40"],
+            ["FEDORA_VERSION=40"],
+            get_toolbox_labels("base", "40"),
         ),
         Image(
             "toolbox/Containerfile.kube",
             "quay.io/zzlotnik/toolbox:kube-fedora-40",
-            common_build_args + ["FEDORA_VERSION=40"],
+            ["FEDORA_VERSION=40"],
+            get_toolbox_labels("kube", "40"),
         ),
         Image(
             "toolbox/Containerfile.mco",
             "quay.io/zzlotnik/toolbox:mco-fedora-40",
-            common_build_args + ["FEDORA_VERSION=40"],
+            ["FEDORA_VERSION=40"],
+            get_toolbox_labels("mco", "40"),
         ),
         Image(
             "fedora-coreos/Containerfile",
             "quay.io/zzlotnik/os-images:fedora-coreos",
-            common_build_args + ["FEDORA_VERSION=40"],
+            ["FEDORA_VERSION=40"],
         ),
         Image(
             "fedora-silverblue/Containerfile",
             "quay.io/zzlotnik/os-images:fedora-silverblue-40",
-            common_build_args + ["FEDORA_VERSION=40"],
+            ["FEDORA_VERSION=40"],
         ),
     ]
 
@@ -303,17 +347,14 @@ def main(args):
         Image(
             "devex/Containerfile.buildah",
             "quay.io/zzlotnik/devex:buildah",
-            common_build_args,
         ),
         Image(
             "devex/Containerfile.epel",
             "quay.io/zzlotnik/devex:epel",
-            common_build_args,
         ),
         Image(
             "ocp-ssh-debug/Containerfile",
             "quay.io/zzlotnik/testing:ssh-debug-pod",
-            common_build_args,
         ),
     ]
 
