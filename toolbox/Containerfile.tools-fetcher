@@ -2,8 +2,6 @@ FROM registry.fedoraproject.org/fedora-toolbox:40
 
 COPY get-arch.py /usr/local/bin/get-arch
 
-SHELL ["option", "-o", "pipefail"]
-
 ARG DYFF_VERSION=1.7.1
 WORKDIR /dyff
 RUN curl -L "https://github.com/homeport/dyff/releases/download/v${DYFF_VERSION}/dyff_${DYFF_VERSION}_linux_$(get-arch --amd64 --arm64).tar.gz" | tar xz
