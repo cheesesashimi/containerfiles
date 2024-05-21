@@ -169,6 +169,19 @@ class Image:
         self.labels.append(f"org.opencontainers.image.source={src}")
         self.labels.append(f"org.opencontainers.image.revision={git_ref}")
 
+        conditional_labels = {
+            "GITHUB_ACTIONS": "com.github.actions=",
+            "GITHUB_RUN_ID": "com.github.actions.runId=GITHUB_RUN_ID",
+            "GITHUB_RUN_NUMBER": "com.github.actions.runNumber=GITHUB_RUN_NUMBER",
+            "GITHUB_WORKFLOW": "com.github.actions.workflow=GITHUB_WORKFLOW",
+            "RUNNER_NAME": "com.github.actions.runnerName=RUNNER_NAME",
+        }
+
+        for var, label in conditional_labels.items():
+            value = os.getenv(var)
+            if value:
+                self.labels.append(label.replace(var, value))
+
     @property
     def build_context(self) -> str:
         return self._build_context
