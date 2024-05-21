@@ -60,6 +60,7 @@ RUN --mount=type=cache,target=/var/cache/dnf,z \
 	rm /etc/profile.d/color*.csh /etc/profile.d/color*.sh && \
 	rm -rf /rpms
 COPY --from=tools-fetcher /dyff/dyff /usr/local/bin/
+COPY --from=tools-fetcher /gomplate/gomplate /usr/local/bin/gomplate
 COPY --from=tools-fetcher /helpers/* /usr/local/bin/
 COPY --from=tools-fetcher /k9s/k9s /usr/local/bin/k9s
 COPY --from=tools-fetcher /oc/kubectl /usr/local/bin/kubectl

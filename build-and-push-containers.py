@@ -295,6 +295,7 @@ def main(args):
         GithubPackage("antibody", "getantibody/antibody"),
         GithubPackage("chezmoi", "twpayne/chezmoi"),
         GithubPackage("dive", "wagoodman/dive"),
+        GithubPackage("gomplate", "hairyhenderson/gomplate"),
         GithubPackage("golangci-lint", "golangci/golangci-lint"),
         GithubPackage("k9s", "derailed/k9s"),
         GithubPackage("omc", "gmeghnag/omc"),

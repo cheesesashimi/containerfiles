@@ -30,6 +30,10 @@ WORKDIR /yq
 RUN curl -L "https://github.com/mikefarah/yq/releases/download/v${YQ_VERSION}/yq_linux_$(get-arch --amd64 --arm64).tar.gz" | tar xz && \
 	mv "/yq/yq_linux_$(get-arch --amd64 --arm64)" /yq/yq
 
+ARG GOMPLATE_VERSION=3.11.7
+WORKDIR /gomplate
+RUN curl -Lo gomplate "https://github.com/hairyhenderson/gomplate/releases/download/v3.11.7/gomplate_linux-$(get-arch --amd64 --arm64)" && chmod +x /gomplate/gomplate
+
 WORKDIR /rpms
 
 ARG CHEZMOI_VERSION=2.47.3
@@ -43,3 +47,5 @@ RUN curl -Lo /rpms/dive.rpm "https://github.com/wagoodman/dive/releases/download
 
 ARG GOLANGCI_LINT_VERSION=1.57.2
 RUN curl -Lo /rpms/golangci-lint.rpm "https://github.com/golangci/golangci-lint/releases/download/v${GOLANGCI_LINT_VERSION}/golangci-lint-${GOLANGCI_LINT_VERSION}-linux-$(get-arch --amd64 --arm64).rpm"
+
+
