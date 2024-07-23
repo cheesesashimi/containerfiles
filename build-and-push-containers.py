@@ -20,7 +20,7 @@ VERSION_REGEX = re.compile(r"^v[0-9].*$")
 
 def get_latest_stable_openshift_release() -> str:
     url = "https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/stable/release.txt"
-    cmd = subprocess.run(["curl", "-s", url], capture_output=True)
+    cmd = subprocess.run(["curl", "-s", "-L", url], capture_output=True)
     cmd.check_returncode()
     for line in cmd.stdout.decode("utf-8").split("\n"):
         if "Version:" in line:
