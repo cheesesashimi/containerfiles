@@ -354,11 +354,6 @@ def main(args):
             ["FEDORA_VERSION=39"],
             get_toolbox_labels("mco", "39"),
         ),
-        Image(
-            "fedora-silverblue/Containerfile",
-            "quay.io/zzlotnik/os-images:fedora-silverblue-39",
-            ["FEDORA_VERSION=39"],
-        ),
     ]
 
     fedora_40_images = [
