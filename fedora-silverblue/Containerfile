@@ -35,6 +35,8 @@ RUN --mount=type=cache,target=/var/cache/rpm-ostree,z \
 		skopeo \
 		starship \
 		tmux \
+		# Needed to let crun-vm work.
+		qemu-system-x86 \
 		zsh && \
 	# Not removing these files prevents the eza alias from working
 	rm /etc/profile.d/color*.csh /etc/profile.d/color*.sh && \
