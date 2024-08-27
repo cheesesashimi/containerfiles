@@ -4,7 +4,8 @@ FROM quay.io/fedora/fedora-silverblue:${FEDORA_VERSION} AS base
 ARG FEDORA_VERSION=39
 FROM registry.fedoraproject.org/fedora-toolbox:${FEDORA_VERSION} AS copr
 RUN --mount=type=cache,target=/var/cache/,z \
-	dnf copr enable -y atim/starship
+	dnf copr enable -y atim/starship && \
+	dnf copr enable -y gmaglione/podman-bootc
 
 FROM quay.io/zzlotnik/toolbox:tools-fetcher AS tools-fetcher
 
@@ -29,6 +30,7 @@ RUN --mount=type=cache,target=/var/cache/rpm-ostree,z \
 		kitty \
 		lua \
 		nvtop \
+		podman-bootc \
 		# qflipper cannot be run from a toolbox container
 		qflipper \
 		ripgrep \
