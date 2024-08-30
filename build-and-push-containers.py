@@ -376,6 +376,12 @@ def main(args):
             get_toolbox_labels("mco", "40"),
         ),
         Image(
+            "toolbox/Containerfile.podman-dev-env",
+            "quay.io/zzlotnik/toolbox:podman-dev-env",
+            ["FEDORA_VERSION=40"],
+            get_toolbox_labels("podman-dev-env", "40"),
+        ),
+        Image(
             "fedora-coreos/Containerfile",
             "quay.io/zzlotnik/os-images:fedora-coreos",
             ["FEDORA_VERSION=40"],

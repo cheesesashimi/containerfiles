@@ -14,6 +14,7 @@ These containers may be pulled from:
 - `quay.io/zzlotnik/toolbox:kube-fedora-40`
 - `quay.io/zzlotnik/toolbox:mco-fedora-39`
 - `quay.io/zzlotnik/toolbox:mco-fedora-40`
+- `quay.io/zzlotnik/toolbox:podman-dev-env`
 
 
 ## Usage with Toolbx
@@ -75,6 +76,10 @@ for:
   easily lead to cluster instability when used incorrectly. You have been
   warned :smile:. This image also includes the [OpenShift cluster debug
   tools](https://github.com/openshift/cluster-debug-tools) which may be useful.
+- `Containerfile.podman-dev-env` - This image is a more minimal development
+  environment for hacking on [Podman](https://github.com/containers/podman). It
+  does not contain an editor or any of the fancy terminal goodies as its only
+  inteneded to be used to build and test Podman.
 
 ## Kubernetes Tools
 

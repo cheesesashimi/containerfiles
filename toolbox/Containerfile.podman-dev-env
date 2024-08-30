@@ -1,0 +1,39 @@
+FROM registry.fedoraproject.org/fedora-toolbox:40 AS base
+RUN --mount=type=cache,target=/var/cache/dnf,z \
+  dnf install -y bats \
+    btrfs-progs-devel \
+    bzip2 \
+    containernetworking-cni \
+    device-mapper-devel \
+    findutils \
+    git \
+    glib2-devel \
+    glibc-static \
+    golang \
+    gpgme-devel \
+    iptables \
+    libassuan-devel \
+    libseccomp-devel \
+    libselinux-devel \
+    lsof \
+    make \
+    nmap-ncat \
+    podman-gvproxy \
+    procps-ng \
+    python \
+    python3-dateutil \
+    python3-pip \
+    python3-psutil \
+    python3-pyyaml \
+    python3-toml \
+    rsync \
+    qemu-img \
+    qemu-system-x86-core \
+    slirp4netns \
+    unzip \
+    which \
+    xz \
+    virtiofsd \
+    zip \
+    zsh && \
+  ln -s /usr/libexec/virtiofsd /usr/local/bin/virtiofsd
