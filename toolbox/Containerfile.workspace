@@ -1,0 +1,68 @@
+ARG FEDORA_VERSION=39
+FROM quay.io/zzlotnik/toolbox:base-fedora-${FEDORA_VERSION} AS base
+
+FROM quay.io/zzlotnik/toolbox:tools-fetcher AS tools-fetcher
+
+FROM quay.io/zzlotnik/toolbox:cluster-debug-tools AS cluster-debug-tools
+
+FROM base AS final
+ARG FEDORA_VERSION=${FEDORA_VERSION}
+COPY --from=tools-fetcher /rpms /rpms
+COPY ./goreleaser.repo /etc/yum.repos.d/goreleaser.repo
+RUN --mount=type=cache,target=/var/cache/dnf,z \
+	dnf copr enable -y atim/starship && \
+	dnf install --setopt=keepcache=True -y \
+		/rpms/antibody.rpm \
+		/rpms/chezmoi.rpm \
+		/rpms/dive.rpm \
+		/rpms/golangci-lint.rpm \
+		bat \
+		btop \
+		cargo \
+		curl \
+		delve \
+		eza \
+		fd-find \
+		fzf \
+		gh \
+		git \
+		git-delta \
+		golang \
+		golang-x-tools-goimports \
+		golang-x-tools-gopls \
+		goreleaser \
+		gpg \
+		hadolint \
+		hyperfine \
+		jq \
+		neovim \
+		nodejs \
+		pinentry-tty \
+		podman-remote \
+		python3 \
+		python3-lsp-server \
+		python3-neovim \
+		python3-pyyaml \
+		ripgrep \
+		rust-analyzer \
+		shellcheck \
+		skopeo \
+		starship \
+		tmux \
+		zsh && \
+	# Link podman-remote to podman. Combined with 'systemctl --user enable
+	# podman.socket', this allows Podman commands to be executed from
+	# within a toolbox container. TODO: Figure out how to do rootless
+	# Podman from within the container to eliminate needing to open the
+	# Podman socket.
+	ln -s /usr/bin/podman-remote /usr/bin/podman && \
+	rm -rf /rpms
+COPY --from=tools-fetcher /dyff/dyff /usr/local/bin/
+COPY --from=tools-fetcher /gomplate/gomplate /usr/local/bin/gomplate
+COPY --from=tools-fetcher /helpers/* /usr/local/bin/
+COPY --from=tools-fetcher /k9s/k9s /usr/local/bin/k9s
+COPY --from=tools-fetcher /oc/kubectl /usr/local/bin/kubectl
+COPY --from=tools-fetcher /oc/oc /usr/local/bin/oc
+COPY --from=tools-fetcher /omc/omc /usr/local/bin/omc
+COPY --from=tools-fetcher /yq/yq /usr/local/bin/yq
+COPY --from=cluster-debug-tools /cluster-debug-tools /usr/local/bin/

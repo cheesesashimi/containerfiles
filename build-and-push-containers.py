@@ -343,6 +343,12 @@ def main(args):
             get_toolbox_labels("base", "39"),
         ),
         Image(
+            "toolbox/Containerfile.workspace",
+            "quay.io/zzlotnik/toolbox:workspace-fedora-39",
+            ["FEDORA_VERSION=39"],
+            get_toolbox_labels("workspace", "39"),
+        ),
+        Image(
             "toolbox/Containerfile.kube",
             "quay.io/zzlotnik/toolbox:kube-fedora-39",
             ["FEDORA_VERSION=39"],
@@ -362,6 +368,12 @@ def main(args):
             "quay.io/zzlotnik/toolbox:base-fedora-40",
             ["FEDORA_VERSION=40"],
             get_toolbox_labels("base", "40"),
+        ),
+        Image(
+            "toolbox/Containerfile.workspace",
+            "quay.io/zzlotnik/toolbox:workspace-fedora-40",
+            ["FEDORA_VERSION=40"],
+            get_toolbox_labels("workspace", "40"),
         ),
         Image(
             "toolbox/Containerfile.kube",

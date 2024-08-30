@@ -10,6 +10,8 @@ These containers may be pulled from:
 
 - `quay.io/zzlotnik/toolbox:base-fedora-39`
 - `quay.io/zzlotnik/toolbox:base-fedora-40`
+- `quay.io/zzlotnik/toolbox:workspace-fedora-39`
+- `quay.io/zzlotnik/toolbox:workspace-fedora-40`
 - `quay.io/zzlotnik/toolbox:kube-fedora-39`
 - `quay.io/zzlotnik/toolbox:kube-fedora-40`
 - `quay.io/zzlotnik/toolbox:mco-fedora-39`
@@ -54,20 +56,20 @@ Containers are automatically built for both Fedora 39 and Fedora 40 using the
 same Containerfiles. Here is a description of what each Containerfile is used
 for:
 
-- `Containerfile.base` - This includes my preferred editor (Neovim) and all of
-  the tools and runtimes needed for my plugins to work. It also includes tmux,
-  Starship.rs, ZSH and all of the bits that make my CLI experience better. It
+- `Containerfile.base` - This contains a rather minimal set of CLI tools that I
+  like to have in all of my environments such as tmux, Starship.rs, ZSH and
+  all of the bits that make my CLI experience better. All of the other
+  containers within this directory use this as their base image, unless
+  mentioned otherwise.
+- `Containerfile.workspace` - This includes my preferred editor (Neovim) and all of
+  the tools and runtimes needed for my plugins to work.  It
   also includes my favorite tools for working with Kubernetes (described
   separately below). Consequently, this image is the largest in this repository.
 - `Containerfile.kube` - This solely includes my favorite Kubernetes tools and
   nothing that is not provided by the base image.
-- `Containerfile.tools` - This is intended to be a transient container used to
+- `Containerfile.tools-fetcher` - This is intended to be a transient container used to
   fetch my favorite tools that are not otherwise packaged so that I can
   directly copy them from this container into other containers at build-time.
-  Right now, it is built and pushed as
-  `quay.io/zzlotnik/toolbos:tools-fedora-{39,40}`, though it is not intended
-  for consumption by anything other than a container build process. This
-  pullspec will eventually become nonexistent.
 - `Containerfile.mco` - This image contains everything included in
   `Containerfile.kube` as well as my [`OpenShift Helpers`](https://github.com/cheesesashimi/zacks-openshift-helpers). These
   are tools I've personally written to assist in my day-to-day work on the
