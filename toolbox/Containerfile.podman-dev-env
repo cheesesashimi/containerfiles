@@ -3,6 +3,7 @@ RUN --mount=type=cache,target=/var/cache/dnf,z \
   dnf install -y bats \
     btrfs-progs-devel \
     bzip2 \
+    catatonit \
     containernetworking-cni \
     device-mapper-devel \
     findutils \
