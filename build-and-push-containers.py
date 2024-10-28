@@ -420,10 +420,26 @@ def main(args):
         ),
     ]
 
+    fedora_41_images = [
+        Image(
+            "toolbox/Containerfile.base",
+            "quay.io/zzlotnik/toolbox:base-fedora-41",
+            ["FEDORA_VERSION=41"],
+            get_toolbox_labels("base", "41"),
+        ),
+        Image(
+            "toolbox/Containerfile.workspace",
+            "quay.io/zzlotnik/toolbox:workspace-fedora-41",
+            ["FEDORA_VERSION=41"],
+            get_toolbox_labels("workspace", "41"),
+        ),
+    ]
+
     image_batches = [
         transient_images_to_build,
         fedora_39_images,
         fedora_40_images,
+        fedora_41_images,
         standalone_images,
     ]
 
