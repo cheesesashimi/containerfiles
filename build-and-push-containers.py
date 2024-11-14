@@ -406,6 +406,11 @@ def main(args):
             ["FEDORA_VERSION=41"],
             get_toolbox_labels("workspace", "41"),
         ),
+        Image(
+            "fedora-silverblue/Containerfile",
+            "quay.io/zzlotnik/os-images:fedora-silverblue-41",
+            ["FEDORA_VERSION=41"],
+        ),
     ]
 
     image_batches = [
