@@ -335,33 +335,6 @@ def main(args):
         [image.pushspec for image in transient_images_to_build]
     )
 
-    fedora_39_images = [
-        Image(
-            "toolbox/Containerfile.base",
-            "quay.io/zzlotnik/toolbox:base-fedora-39",
-            ["FEDORA_VERSION=39"],
-            get_toolbox_labels("base", "39"),
-        ),
-        Image(
-            "toolbox/Containerfile.workspace",
-            "quay.io/zzlotnik/toolbox:workspace-fedora-39",
-            ["FEDORA_VERSION=39"],
-            get_toolbox_labels("workspace", "39"),
-        ),
-        Image(
-            "toolbox/Containerfile.kube",
-            "quay.io/zzlotnik/toolbox:kube-fedora-39",
-            ["FEDORA_VERSION=39"],
-            get_toolbox_labels("kube", "39"),
-        ),
-        Image(
-            "toolbox/Containerfile.mco",
-            "quay.io/zzlotnik/toolbox:mco-fedora-39",
-            ["FEDORA_VERSION=39"],
-            get_toolbox_labels("mco", "39"),
-        ),
-    ]
-
     fedora_40_images = [
         Image(
             "toolbox/Containerfile.base",
@@ -437,7 +410,6 @@ def main(args):
 
     image_batches = [
         transient_images_to_build,
-        fedora_39_images,
         fedora_40_images,
         fedora_41_images,
         standalone_images,
