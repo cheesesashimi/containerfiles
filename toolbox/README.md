@@ -8,14 +8,14 @@ requirement.
 
 These containers may be pulled from:
 
-- `quay.io/zzlotnik/toolbox:base-fedora-39`
 - `quay.io/zzlotnik/toolbox:base-fedora-40`
-- `quay.io/zzlotnik/toolbox:workspace-fedora-39`
+- `quay.io/zzlotnik/toolbox:base-fedora-41`
 - `quay.io/zzlotnik/toolbox:workspace-fedora-40`
-- `quay.io/zzlotnik/toolbox:kube-fedora-39`
+- `quay.io/zzlotnik/toolbox:workspace-fedora-41`
 - `quay.io/zzlotnik/toolbox:kube-fedora-40`
-- `quay.io/zzlotnik/toolbox:mco-fedora-39`
+- `quay.io/zzlotnik/toolbox:kube-fedora-41`
 - `quay.io/zzlotnik/toolbox:mco-fedora-40`
+- `quay.io/zzlotnik/toolbox:mco-fedora-41`
 - `quay.io/zzlotnik/toolbox:podman-dev-env`
 
 
@@ -24,7 +24,7 @@ These containers may be pulled from:
 If you're using Toolbx, you do something like this:
 
 ```console
-$ toolbox create --image quay.io/zzlotnik/toolbox:base-fedora-39 workspace
+$ toolbox create --image quay.io/zzlotnik/toolbox:base-fedora-40 workspace
 $ toolbox enter workspace
 ```
 
@@ -36,7 +36,7 @@ Bash script:
 
 set -euo
 
-image="quay.io/zzlotnik/toolbox:base-fedora-39"
+image="quay.io/zzlotnik/toolbox:base-fedora-40"
 workspace"$(whoami)-workspace"
 
 podman stop "$workspace"
@@ -52,7 +52,7 @@ such as [Podman](https://podman.io).
 
 ## Notes
 
-Containers are automatically built for both Fedora 39 and Fedora 40 using the
+Containers are automatically built for both Fedora 40 and Fedora 41 using the
 same Containerfiles. Here is a description of what each Containerfile is used
 for:
 

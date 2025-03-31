@@ -1,4 +1,4 @@
-ARG FEDORA_VERSION=39
+ARG FEDORA_VERSION=40
 FROM registry.fedoraproject.org/fedora-toolbox:${FEDORA_VERSION} AS base
 
 FROM quay.io/zzlotnik/toolbox:tools-fetcher AS tools-fetcher

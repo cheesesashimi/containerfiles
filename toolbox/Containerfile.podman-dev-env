@@ -7,6 +7,7 @@ RUN --mount=type=cache,target=/var/cache/dnf,z \
     catatonit \
     containernetworking-cni \
     containers-common \
+    crun \
     device-mapper-devel \
     findutils \
     git \
@@ -23,6 +24,7 @@ RUN --mount=type=cache,target=/var/cache/dnf,z \
     make \
     netavark \
     nmap-ncat \
+    passt \
     podman-gvproxy \
     procps-ng \
     python \

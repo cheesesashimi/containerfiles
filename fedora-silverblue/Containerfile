@@ -1,7 +1,7 @@
-ARG FEDORA_VERSION=39
+ARG FEDORA_VERSION=40
 FROM quay.io/fedora/fedora-silverblue:${FEDORA_VERSION} AS base
 
-ARG FEDORA_VERSION=39
+ARG FEDORA_VERSION=40
 FROM registry.fedoraproject.org/fedora-toolbox:${FEDORA_VERSION} AS copr
 RUN --mount=type=cache,target=/var/cache/,z \
 	dnf copr enable -y atim/starship && \
