@@ -30,7 +30,7 @@ RUN curl -L "https://github.com/mikefarah/yq/releases/download/v${YQ_VERSION}/yq
 
 ARG GOMPLATE_VERSION=3.11.7
 WORKDIR /gomplate
-RUN curl -Lo gomplate "https://github.com/hairyhenderson/gomplate/releases/download/v3.11.7/gomplate_linux-$(get-arch --amd64 --arm64)" && chmod +x /gomplate/gomplate
+RUN curl -Lo gomplate "https://github.com/hairyhenderson/gomplate/releases/download/v${GOMPLATE_VERSION}/gomplate_linux-$(get-arch --amd64 --arm64)" && chmod +x /gomplate/gomplate
 
 WORKDIR /rpms
 
