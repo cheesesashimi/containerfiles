@@ -65,4 +65,5 @@ COPY --from=tools-fetcher /oc/kubectl /usr/local/bin/kubectl
 COPY --from=tools-fetcher /oc/oc /usr/local/bin/oc
 COPY --from=tools-fetcher /omc/omc /usr/local/bin/omc
 COPY --from=tools-fetcher /yq/yq /usr/local/bin/yq
+COPY --from=tools-fetcher /pup/pup /usr/local/bin/pup
 # COPY --from=cluster-debug-tools /cluster-debug-tools /usr/local/bin/

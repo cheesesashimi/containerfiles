@@ -300,6 +300,7 @@ def main(args):
         GithubPackage("k9s", "derailed/k9s"),
         GithubPackage("omc", "gmeghnag/omc"),
         GithubPackage("zacks-helpers", "cheesesashimi/zacks-openshift-helpers"),
+        GithubPackage("pup", "ericchiang/pup"),
     ]
 
     github_build_labels = []
