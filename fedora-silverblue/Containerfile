@@ -31,6 +31,9 @@ RUN --mount=type=cache,target=/var/cache/rpm-ostree,z \
 		lua \
 		nvtop \
 		podman-bootc \
+		# Ramalama wants to be on the host instead of in a container, which makes
+		# sense because it manages containers.
+		python3-ramalama \
 		# qflipper cannot be run from a toolbox container
 		qflipper \
 		ripgrep \
