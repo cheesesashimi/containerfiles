@@ -1,0 +1,15 @@
+# This image is intended to be used for arm64 cross-compilation with
+# CGO_ENABLED from an amd64 host. I attempted to do this with a Fedora base
+# image instead of Debian, but decided to take the path of least resistance.
+#
+# As of this date (2025-04-16), this container can be used with the following
+# incantation to cross-compile CGO_ENABLED Golang projects such as ones that
+# include sqlite3:
+#
+# $ env CC=aarch64-linux-gnu-gcc CXX=aarch64-linux-gnu-gpp CGO_ENABLED=1 GOOS=linux GOARCH=arm64 go build -v .
+FROM docker.io/library/golang:latest
+RUN apt-get update && \
+    apt-get install -y \
+      build-essential \
+      gcc-aarch64-linux-gnu && \
+    apt-get clean
