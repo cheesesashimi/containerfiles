@@ -1,4 +1,4 @@
-ARG FEDORA_VERSION=40
+ARG FEDORA_VERSION=42
 FROM quay.io/zzlotnik/toolbox:base-fedora-${FEDORA_VERSION} AS base
 
 FROM quay.io/zzlotnik/toolbox:tools-fetcher AS tools-fetcher
@@ -11,6 +11,7 @@ COPY --from=tools-fetcher /rpms /rpms
 COPY ./goreleaser.repo /etc/yum.repos.d/goreleaser.repo
 RUN --mount=type=cache,target=/var/cache/dnf,z \
 	dnf copr enable -y atim/starship && \
+	dnf copr enable -y alternateved/eza && \
 	dnf install --setopt=keepcache=True -y \
 		/rpms/antibody.rpm \
 		/rpms/chezmoi.rpm \

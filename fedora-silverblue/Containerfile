@@ -1,11 +1,12 @@
-ARG FEDORA_VERSION=40
+ARG FEDORA_VERSION=42
 FROM quay.io/fedora/fedora-silverblue:${FEDORA_VERSION} AS base
 
-ARG FEDORA_VERSION=40
+ARG FEDORA_VERSION=42
 FROM registry.fedoraproject.org/fedora-toolbox:${FEDORA_VERSION} AS copr
 RUN --mount=type=cache,target=/var/cache/,z \
 	dnf copr enable -y atim/starship && \
-	dnf copr enable -y gmaglione/podman-bootc
+	dnf copr enable -y gmaglione/podman-bootc && \
+	dnf copr enable -y alternateved/eza
 
 FROM quay.io/zzlotnik/toolbox:tools-fetcher AS tools-fetcher
 

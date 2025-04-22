@@ -1,4 +1,4 @@
-ARG FEDORA_VERSION=40
+ARG FEDORA_VERSION=42
 FROM registry.fedoraproject.org/fedora-toolbox:${FEDORA_VERSION} AS base
 
 FROM quay.io/zzlotnik/toolbox:tools-fetcher AS tools-fetcher
@@ -7,6 +7,7 @@ FROM base AS final
 ARG FEDORA_VERSION=${FEDORA_VERSION}
 RUN --mount=type=cache,target=/var/cache/dnf,z \
 	dnf copr enable -y atim/starship && \
+	dnf copr enable -y alternateved/eza && \
 	dnf install --setopt=keepcache=True -y \
 		bat \
 		curl \
