@@ -1,4 +1,4 @@
-FROM registry.fedoraproject.org/fedora-toolbox:40
+FROM registry.fedoraproject.org/fedora-toolbox:42
 
 COPY get-arch.py /usr/local/bin/get-arch
 

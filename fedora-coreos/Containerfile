@@ -1,12 +1,13 @@
-ARG FEDORA_VERSION=40
+ARG FEDORA_VERSION=42
 FROM quay.io/fedora/fedora-coreos:stable AS base
 
 FROM quay.io/zzlotnik/toolbox:tools-fetcher AS tools-fetcher
 
-ARG FEDORA_VERSION=40
+ARG FEDORA_VERSION=42
 FROM registry.fedoraproject.org/fedora-toolbox:${FEDORA_VERSION} AS copr
 RUN --mount=type=cache,target=/var/cache/,z \
-	dnf copr enable -y atim/starship
+	dnf copr enable -y atim/starship && \
+	dnf copr enable -y alternateved/eza
 
 FROM base AS final
 COPY --from=copr /etc/yum.repos.d/_copr* /etc/yum.repos.d/

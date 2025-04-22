@@ -1,4 +1,4 @@
-ARG FEDORA_VERSION=40
+ARG FEDORA_VERSION=42
 FROM quay.io/zzlotnik/toolbox:kube-fedora-${FEDORA_VERSION} AS base
 
 FROM quay.io/zzlotnik/toolbox:tools-fetcher AS tools-fetcher
