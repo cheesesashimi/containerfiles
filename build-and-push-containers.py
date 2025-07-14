@@ -336,43 +336,6 @@ def main(args):
         [image.pushspec for image in transient_images_to_build]
     )
 
-    fedora_41_images = [
-        Image(
-            "toolbox/Containerfile.base",
-            "quay.io/zzlotnik/toolbox:base-fedora-41",
-            ["FEDORA_VERSION=41"],
-            get_toolbox_labels("base", "41"),
-        ),
-        Image(
-            "toolbox/Containerfile.workspace",
-            "quay.io/zzlotnik/toolbox:workspace-fedora-41",
-            ["FEDORA_VERSION=41"],
-            get_toolbox_labels("workspace", "41"),
-        ),
-        Image(
-            "toolbox/Containerfile.kube",
-            "quay.io/zzlotnik/toolbox:kube-fedora-41",
-            ["FEDORA_VERSION=41"],
-            get_toolbox_labels("kube", "41"),
-        ),
-        Image(
-            "toolbox/Containerfile.mco",
-            "quay.io/zzlotnik/toolbox:mco-fedora-41",
-            ["FEDORA_VERSION=41"],
-            get_toolbox_labels("mco", "41"),
-        ),
-        Image(
-            "fedora-coreos/Containerfile",
-            "quay.io/zzlotnik/os-images:fedora-coreos",
-            ["FEDORA_VERSION=41"],
-        ),
-        Image(
-            "fedora-silverblue/Containerfile",
-            "quay.io/zzlotnik/os-images:fedora-silverblue-41",
-            ["FEDORA_VERSION=41"],
-        ),
-    ]
-
     standalone_images = [
         Image(
             "devex/Containerfile.buildah",
@@ -396,6 +359,18 @@ def main(args):
             get_toolbox_labels("base", "42"),
         ),
         Image(
+            "toolbox/Containerfile.kube",
+            "quay.io/zzlotnik/toolbox:kube-fedora-42",
+            ["FEDORA_VERSION=42"],
+            get_toolbox_labels("kube", "42"),
+        ),
+        Image(
+            "toolbox/Containerfile.mco",
+            "quay.io/zzlotnik/toolbox:mco-fedora-42",
+            ["FEDORA_VERSION=42"],
+            get_toolbox_labels("mco", "42"),
+        ),
+        Image(
             "toolbox/Containerfile.podman-dev-env",
             "quay.io/zzlotnik/toolbox:podman-dev-env",
             ["FEDORA_VERSION=42"],
@@ -416,7 +391,6 @@ def main(args):
 
     image_batches = [
         transient_images_to_build,
-        fedora_41_images,
         fedora_42_images,
         standalone_images,
     ]

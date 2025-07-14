@@ -8,14 +8,10 @@ requirement.
 
 These containers may be pulled from:
 
-- `quay.io/zzlotnik/toolbox:base-fedora-40`
-- `quay.io/zzlotnik/toolbox:base-fedora-41`
-- `quay.io/zzlotnik/toolbox:workspace-fedora-40`
-- `quay.io/zzlotnik/toolbox:workspace-fedora-41`
-- `quay.io/zzlotnik/toolbox:kube-fedora-40`
-- `quay.io/zzlotnik/toolbox:kube-fedora-41`
-- `quay.io/zzlotnik/toolbox:mco-fedora-40`
-- `quay.io/zzlotnik/toolbox:mco-fedora-41`
+- `quay.io/zzlotnik/toolbox:base-fedora-42`
+- `quay.io/zzlotnik/toolbox:workspace-fedora-42`
+- `quay.io/zzlotnik/toolbox:kube-fedora-42`
+- `quay.io/zzlotnik/toolbox:mco-fedora-42`
 - `quay.io/zzlotnik/toolbox:podman-dev-env`
 
 
@@ -52,9 +48,8 @@ such as [Podman](https://podman.io).
 
 ## Notes
 
-Containers are automatically built for both Fedora 40 and Fedora 41 using the
-same Containerfiles. Here is a description of what each Containerfile is used
-for:
+Containers are automatically built for Fedora 42 using the same Containerfiles.
+Here is a description of what each Containerfile is used for:
 
 - `Containerfile.base` - This contains a rather minimal set of CLI tools that I
   like to have in all of my environments such as tmux, Starship.rs, ZSH and
