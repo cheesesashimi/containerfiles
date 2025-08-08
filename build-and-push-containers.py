@@ -351,41 +351,59 @@ def main(args):
         ),
     ]
 
+    fedora_version = "42"
+
+    tag_suffix = f"fedora-{fedora_version}"
+
+    fedora_version_build_args = [f"FEDORA_VERSION={fedora_version}"]
+
     fedora_42_images = [
         Image(
             "toolbox/Containerfile.base",
-            "quay.io/zzlotnik/toolbox:base-fedora-42",
-            ["FEDORA_VERSION=42"],
-            get_toolbox_labels("base", "42"),
+            f"quay.io/zzlotnik/toolbox:base-{tag_suffix}",
+            fedora_version_build_args,
+            get_toolbox_labels("base", fedora_version),
         ),
         Image(
             "toolbox/Containerfile.kube",
-            "quay.io/zzlotnik/toolbox:kube-fedora-42",
-            ["FEDORA_VERSION=42"],
-            get_toolbox_labels("kube", "42"),
+            f"quay.io/zzlotnik/toolbox:kube-{tag_suffix}",
+            fedora_version_build_args,
+            get_toolbox_labels("kube", fedora_version),
         ),
         Image(
             "toolbox/Containerfile.mco",
-            "quay.io/zzlotnik/toolbox:mco-fedora-42",
-            ["FEDORA_VERSION=42"],
-            get_toolbox_labels("mco", "42"),
+            f"quay.io/zzlotnik/toolbox:mco-{tag_suffix}",
+            fedora_version_build_args,
+            get_toolbox_labels("mco", fedora_version),
         ),
         Image(
             "toolbox/Containerfile.podman-dev-env",
             "quay.io/zzlotnik/toolbox:podman-dev-env",
-            ["FEDORA_VERSION=42"],
-            get_toolbox_labels("podman-dev-env", "42"),
+            fedora_version_build_args,
+            get_toolbox_labels("podman-dev-env", fedora_version),
         ),
         Image(
             "toolbox/Containerfile.workspace",
-            "quay.io/zzlotnik/toolbox:workspace-fedora-42",
-            ["FEDORA_VERSION=42"],
-            get_toolbox_labels("workspace", "42"),
+            f"quay.io/zzlotnik/toolbox:workspace-{tag_suffix}",
+            fedora_version_build_args,
+            get_toolbox_labels("workspace", fedora_version),
+        ),
+        Image(
+            "toolbox/Containerfile.claude-workspace",
+            f"quay.io/zzlotnik/toolbox:claude-workspace-{tag_suffix}",
+            fedora_version_build_args,
+            get_toolbox_labels("claude-workspace", fedora_version),
+        ),
+        Image(
+            "toolbox/Containerfile.claude-minimal",
+            f"quay.io/zzlotnik/toolbox:claude-minimal-{tag_suffix}",
+            fedora_version_build_args,
+            get_toolbox_labels("claude-minimal", fedora_version),
         ),
         Image(
             "fedora-silverblue/Containerfile",
-            "quay.io/zzlotnik/os-images:fedora-silverblue-42",
-            ["FEDORA_VERSION=42"],
+            f"quay.io/zzlotnik/os-images:fedora-silverblue-{fedora_version}",
+            fedora_version_build_args,
         ),
     ]
 
