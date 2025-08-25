@@ -349,10 +349,6 @@ def main(args):
             "ocp-ssh-debug/Containerfile",
             "quay.io/zzlotnik/testing:ssh-debug-pod",
         ),
-        Image(
-            "devex/Containerfile.zacks-devex-helpers",
-            "quay.io/zzlotnik/devex:zacks-devex-helpers",
-        ),
     ]
 
     fedora_version = "42"
@@ -362,6 +358,10 @@ def main(args):
     fedora_version_build_args = [f"FEDORA_VERSION={fedora_version}"]
 
     fedora_42_images = [
+        Image(
+            "devex/Containerfile.zacks-devex-helpers",
+            "quay.io/zzlotnik/devex:zacks-devex-helpers",
+        ),
         Image(
             "toolbox/Containerfile.base",
             f"quay.io/zzlotnik/toolbox:base-{tag_suffix}",
