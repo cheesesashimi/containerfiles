@@ -2,8 +2,7 @@ ARG FEDORA_VERSION=42
 FROM quay.io/zzlotnik/toolbox:base-fedora-${FEDORA_VERSION} AS base
 
 FROM quay.io/zzlotnik/toolbox:tools-fetcher AS tools-fetcher
-
-# FROM quay.io/zzlotnik/toolbox:cluster-debug-tools AS cluster-debug-tools
+FROM quay.io/zzlotnik/devex:zacks-devex-helpers AS helpers
 
 FROM base AS final
 ARG FEDORA_VERSION=${FEDORA_VERSION}
@@ -61,7 +60,7 @@ RUN --mount=type=cache,target=/var/cache/dnf,z \
 	rm -rf /rpms
 COPY --from=tools-fetcher /dyff/dyff /usr/local/bin/
 COPY --from=tools-fetcher /gomplate/gomplate /usr/local/bin/gomplate
-COPY --from=tools-fetcher /helpers/* /usr/local/bin/
+COPY --from=helpers /usr/local/bin/ /usr/local/bin/
 COPY --from=tools-fetcher /k9s/k9s /usr/local/bin/k9s
 COPY --from=tools-fetcher /oc/kubectl /usr/local/bin/kubectl
 COPY --from=tools-fetcher /oc/oc /usr/local/bin/oc

@@ -5,6 +5,8 @@ FROM quay.io/zzlotnik/toolbox:tools-fetcher AS tools-fetcher
 
 # FROM quay.io/zzlotnik/toolbox:cluster-debug-tools AS cluster-debug-tools
 
+FROM quay.io/zzlotnik/devex:zacks-devex-helpers AS helpers
+
 FROM base AS final
-COPY --from=tools-fetcher /helpers/* /usr/local/bin/
+COPY --from=helpers /usr/local/bin/ /usr/local/bin/
 # COPY --from=cluster-debug-tools /cluster-debug-tools /usr/local/bin/

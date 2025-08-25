@@ -10,11 +10,6 @@ ARG OCP_VERSION=4.15.8
 WORKDIR /oc
 RUN curl -L "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/${OCP_VERSION}/openshift-client-linux$(get-arch --custom-x86_64="" --custom-aarch64='-arm64')".tar.gz | tar xz
 
-ARG ZACKS_HELPERS_VERSION=0.0.15
-WORKDIR /helpers
-RUN curl -L "https://github.com/cheesesashimi/zacks-openshift-helpers/releases/download/v${ZACKS_HELPERS_VERSION}/zacks-openshift-helpers_Linux_$(get-arch --x86_64 --arm64).tar.gz" | tar xz && \
-	rm README.md
-
 ARG OMC_VERSION=3.6.0
 WORKDIR /omc
 RUN curl -L "https://github.com/gmeghnag/omc/releases/download/v${OMC_VERSION}/omc_Linux_$(get-arch --x86_64 --arm64).tar.gz" | tar zx

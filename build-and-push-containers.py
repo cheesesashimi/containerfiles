@@ -299,7 +299,6 @@ def main(args):
         GithubPackage("golangci-lint", "golangci/golangci-lint"),
         GithubPackage("k9s", "derailed/k9s"),
         GithubPackage("omc", "gmeghnag/omc"),
-        GithubPackage("zacks-helpers", "cheesesashimi/zacks-openshift-helpers"),
         GithubPackage("pup", "ericchiang/pup"),
         GithubPackage("goose", "block/goose"),
     ]
@@ -349,6 +348,10 @@ def main(args):
         Image(
             "ocp-ssh-debug/Containerfile",
             "quay.io/zzlotnik/testing:ssh-debug-pod",
+        ),
+        Image(
+            "devex/Containerfile.zacks-devex-helpers",
+            "quay.io/zzlotnik/devex:zacks-devex-helpers",
         ),
     ]
 

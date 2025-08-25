@@ -1,0 +1,7 @@
+FROM golang:latest AS builder
+WORKDIR /mco
+RUN git clone --depth=1 https://github.com/openshift/machine-config-operator.git . && \
+    make -j install-helpers
+
+FROM fedora:latest AS final
+COPY --from=builder /mco/_output/linux/amd64/ /usr/local/bin/
