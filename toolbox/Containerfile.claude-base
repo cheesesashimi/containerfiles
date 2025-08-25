@@ -1,7 +1,0 @@
-ARG FEDORA_VERSION=42
-FROM quay.io/zzlotnik/toolbox:base-fedora-${FEDORA_VERSION} AS base
-
-RUN --mount=type=cache,target=/var/cache/dnf,z \
-    --mount=type=cache,target=/root/.npm,z \
-  dnf install -y nodejs-npm && \
-  npm install -g @anthropic-ai/claude-code

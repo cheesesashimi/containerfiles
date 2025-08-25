@@ -301,6 +301,7 @@ def main(args):
         GithubPackage("omc", "gmeghnag/omc"),
         GithubPackage("zacks-helpers", "cheesesashimi/zacks-openshift-helpers"),
         GithubPackage("pup", "ericchiang/pup"),
+        GithubPackage("goose", "block/goose"),
     ]
 
     github_build_labels = []
@@ -389,16 +390,16 @@ def main(args):
             get_toolbox_labels("workspace", fedora_version),
         ),
         Image(
-            "toolbox/Containerfile.claude-workspace",
-            f"quay.io/zzlotnik/toolbox:claude-workspace-{tag_suffix}",
+            "toolbox/Containerfile.ai-workspace",
+            f"quay.io/zzlotnik/toolbox:ai-workspace-{tag_suffix}",
             fedora_version_build_args,
-            get_toolbox_labels("claude-workspace", fedora_version),
+            get_toolbox_labels("ai-workspace", fedora_version),
         ),
         Image(
-            "toolbox/Containerfile.claude-minimal",
-            f"quay.io/zzlotnik/toolbox:claude-minimal-{tag_suffix}",
+            "toolbox/Containerfile.ai-minimal",
+            f"quay.io/zzlotnik/toolbox:ai-minimal-{tag_suffix}",
             fedora_version_build_args,
-            get_toolbox_labels("claude-minimal", fedora_version),
+            get_toolbox_labels("ai-minimal", fedora_version),
         ),
         Image(
             "fedora-silverblue/Containerfile",

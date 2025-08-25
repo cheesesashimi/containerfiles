@@ -39,6 +39,11 @@ RUN curl -Lo pup.zip "https://github.com/ericchiang/pup/releases/download/v${PUP
     rm pup.zip && \
     chmod +x /pup/pup
 
+ARG GOOSE_VERSION=1.6.0
+WORKDIR /goose
+RUN curl -L "https://github.com/block/goose/releases/download/v1.6.0/goose-$(get-arch --x86_64 --aarch64)-unknown-linux-gnu.tar.bz2" | tar xj && \
+    chmod +x /goose/goose
+
 WORKDIR /rpms
 
 ARG CHEZMOI_VERSION=2.47.3
@@ -52,4 +57,3 @@ RUN curl -Lo /rpms/dive.rpm "https://github.com/wagoodman/dive/releases/download
 
 ARG GOLANGCI_LINT_VERSION=1.57.2
 RUN curl -Lo /rpms/golangci-lint.rpm "https://github.com/golangci/golangci-lint/releases/download/v${GOLANGCI_LINT_VERSION}/golangci-lint-${GOLANGCI_LINT_VERSION}-linux-$(get-arch --amd64 --arm64).rpm"
-
