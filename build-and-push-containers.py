@@ -412,9 +412,9 @@ def main(args):
     ]
 
     image_batches = [
+        standalone_images,
         transient_images_to_build,
         fedora_42_images,
-        standalone_images,
     ]
 
     for image_batch in image_batches:
