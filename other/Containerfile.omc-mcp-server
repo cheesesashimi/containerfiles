@@ -1,0 +1,23 @@
+FROM fedora:latest AS base
+RUN --mount=type=cache,target=/var/cache/dnf,z \
+  dnf install -y golang git jq
+
+FROM base AS build-mcp-server
+WORKDIR /mcp-server
+RUN git clone --depth=1 https://github.com/shivprakashmuley/mustgather-mcp-server.git . && \
+  go build -o /mcp-server/mustgather-mcp-server
+
+FROM base AS fetch-omc
+WORKDIR /omc
+RUN curl -sL https://api.github.com/repos/gmeghnag/omc/releases/latest | jq -r '.assets[] | select(.name? | match("omc_Linux_x86_64.tar.gz$")) | .browser_download_url' > "download_url.txt" && \
+    curl -L "$(cat download_url.txt)" | tar zx && \
+    rm download_url.txt
+
+FROM fedora:latest AS final
+RUN --mount=type=cache,target=/var/cache/dnf,z \
+    --mount=type=cache,target=/root/.npm,z \
+  dnf install -y nodejs-npm && \
+  npm install -g @anthropic-ai/claude-code && \
+  npm install -g @google/gemini-cli
+COPY --from=build-mcp-server /mcp-server/mustgather-mcp-server /usr/bin/mustgather-mcp-server
+COPY --from=fetch-omc /omc/omc /usr/bin/omc
