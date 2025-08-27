@@ -1,0 +1,47 @@
+include: zacks-base.yaml
+
+contents:
+  packages:
+    # TODO: Antibody
+    - bat
+    - btop
+    - chezmoi
+    - curl
+    - delve
+    # TODO:
+    # - dive
+    - eza
+    - fzf
+    # TODO:
+    # - gh
+    - go
+    - golangci-lint
+    # TODO:
+    # - goreleaser
+    - gpg
+    # TODO:
+    # - hadolint
+    - jq
+    - k9s
+    - neovim
+    - nodejs
+    # TODO:
+    - podman
+    # - podman-remote
+    # TODO:
+    # - pup
+    - python3
+    # TODO:
+    # - python3-lsp-server
+    # - python3-neovim
+    # - python3-pyyaml
+    - ripgrep
+    - rust
+    - rust-analyzer
+    # TODO:
+    # - shellcheck
+    - skopeo
+    - starship
+    - sqlite
+    - tmux
+    - zsh

@@ -1,0 +1,20 @@
+include: toolbox-base.yaml
+
+contents:
+  packages:
+    - bat
+    - curl
+    - eza
+    - fd
+    - fzf
+    - git
+    - delta
+    - gpg
+    - jq
+    - lua5.4
+    - ripgrep
+    - skopeo
+    - starship
+    - tmux
+    - yq
+    - zsh

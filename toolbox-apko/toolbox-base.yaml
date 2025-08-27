@@ -1,0 +1,58 @@
+contents:
+  keyring:
+    - https://packages.wolfi.dev/os/wolfi-signing.rsa.pub
+  repositories:
+    - https://packages.wolfi.dev/os
+  #repositories:
+  #  - https://dl-cdn.alpinelinux.org/alpine/edge/main
+  #  - https://dl-cdn.alpinelinux.org/alpine/edge/community
+  packages:
+    - bash
+    - bc
+    - busybox
+    - bzip2
+    - coreutils
+    - curl
+    - diffutils
+    - findmnt
+    - findutils
+    - gnupg
+    - gnutar
+    - gpg
+    - iproute2
+    - iputils
+    - keyutils
+    - less
+    - libcap
+    - libcap-utils
+    - locate
+    - man-db
+    - mesa
+    - mount
+    - ncurses
+    - ncurses-terminfo
+    - net-tools
+    - openssh-client
+    - pigz
+    - posix-libc-utils
+    - procps
+    - rsync
+    - shadow
+    - sudo
+    - tcpdump
+    - tree
+    - tzdata
+    - umount
+    - unzip
+    - util-linux
+    - util-linux-login
+    - util-linux-misc
+    - vulkan-loader
+    - wget
+    - xauth
+    - xz
+    - wolfi-base
+    - zip
+
+archs:
+  - x86_64
