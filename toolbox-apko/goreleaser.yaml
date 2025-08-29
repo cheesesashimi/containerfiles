@@ -1,0 +1,35 @@
+package:
+  name: goreleaser
+  version: "2.11.2"
+  description: "something"
+  copyright:
+    - license: MIT
+
+environment:
+  contents:
+    keyring:
+      - https://packages.wolfi.dev/os/wolfi-signing.rsa.pub
+      - ./melange.rsa.pub
+    repositories:
+      - https://packages.wolfi.dev/os
+
+pipeline:
+  - uses: git-checkout
+    with:
+      repository: https://github.com/goreleaser/goreleaser
+      tag: v${{package.version}}
+      expected-commit: 0c79877cda7594ad63c28e0151fa532b30ae2c91
+
+  - runs: |
+      mkdir -p ${{targets.destdir}}/usr/bin/goreleaser
+
+  - uses: go/build
+    with:
+      packages: cmd
+      output: goreleaser
+
+test:
+  pipeline:
+    - name: Test goreleaser command
+      runs: |
+        goreleaser --version
