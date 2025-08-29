@@ -1,0 +1,69 @@
+package:
+  name: podman-remote
+  version: "5.6.0"
+  description: "something"
+  copyright:
+    - license: Apache-2.0
+
+environment:
+  contents:
+    keyring:
+      - https://packages.wolfi.dev/os/wolfi-signing.rsa.pub
+      - ./melange.rsa.pub
+    repositories:
+      - https://packages.wolfi.dev/os
+    packages:
+      - bash
+      - btrfs-progs
+      - btrfs-progs-dev
+      - build-base
+      - busybox
+      - ca-certificates-bundle
+      - coreutils
+      - crun
+      - device-mapper-libs
+      - go
+      - go-md2man
+      - gpgme
+      - gpgme-dev
+      - grep
+      - iptables
+      - iptables-dev
+      - libassuan-dev
+      - libgpg-error-dev
+      - libprotobuf
+      - libseccomp-dev
+      - libsystemd
+      - man-db
+      - pkgconf
+      - pkgconf-dev
+      - protobuf-c-dev
+      - python3
+      - shadow-subids
+      - systemd-dev
+      - wolfi-base
+
+pipeline:
+  - uses: git-checkout
+    with:
+      repository: https://github.com/containers/podman
+      tag: v${{package.version}}
+      expected-commit: da671ef6cfa3fc9ac6225c18f1dd0a70a951e43f
+
+  - uses: go/bump
+    with:
+      # Not sure if this is necessary or not.
+      deps: |-
+        github.com/docker/docker@v28.3.3
+
+  - runs: |-
+      make podman-remote
+
+  - runs: |
+      mkdir -p ${{targets.destdir}}/usr/bin/podman-remote
+
+test:
+  pipeline:
+    - name: Test podman-remote command
+      runs: |
+        podman-remote --version
