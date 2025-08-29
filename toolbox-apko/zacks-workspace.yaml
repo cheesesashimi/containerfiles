@@ -2,21 +2,20 @@ include: zacks-base.yaml
 
 contents:
   packages:
-    # TODO: Antibody
+    # TODO: Done with melange
+    # - antibody
     - bat
     - btop
     - chezmoi
     - curl
     - delve
-    # TODO:
+    # TODO: Done with melange
     # - dive
     - eza
     - fzf
-    # TODO:
-    # - gh
     - go
     - golangci-lint
-    # TODO:
+    # TODO: Done with melange
     # - goreleaser
     - gpg
     # TODO:
@@ -25,16 +24,14 @@ contents:
     - k9s
     - neovim
     - nodejs
-    # TODO:
-    - podman
+    # TODO: Done with melange
     # - podman-remote
     # TODO:
     # - pup
     - python3
-    # TODO:
-    # - python3-lsp-server
-    # - python3-neovim
-    # - python3-pyyaml
+    - py3-lsp-server
+    - py3-neovim
+    - py3-pyyaml
     - ripgrep
     - rust
     - rust-analyzer
