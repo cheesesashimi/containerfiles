@@ -318,12 +318,6 @@ def main(args):
     )
 
     transient_images_to_build = [
-        # Image(
-        #     "toolbox/Containerfile.cluster-debug-tools",
-        #     "quay.io/zzlotnik/toolbox:cluster-debug-tools",
-        #     [],
-        #     get_cluster_debug_tools_labels(),
-        # ),
         Image(
             "toolbox/Containerfile.tools-fetcher",
             "quay.io/zzlotnik/toolbox:tools-fetcher",
@@ -337,10 +331,6 @@ def main(args):
     )
 
     standalone_images = [
-        Image(
-            "devex/Containerfile.buildah",
-            "quay.io/zzlotnik/devex:buildah",
-        ),
         Image(
             "devex/Containerfile.epel",
             "quay.io/zzlotnik/devex:epel",

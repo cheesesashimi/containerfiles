@@ -8,19 +8,22 @@ requirement.
 
 These containers may be pulled from:
 
+- `quay.io/zzlotnik/toolbox:ai-base-fedora-42`
+- `quay.io/zzlotnik/toolbox:ai-base-fedora-42`
+- `quay.io/zzlotnik/toolbox:ai-minimal-fedora-42`
+- `quay.io/zzlotnik/toolbox:ai-workspace-fedora-42`
 - `quay.io/zzlotnik/toolbox:base-fedora-42`
-- `quay.io/zzlotnik/toolbox:workspace-fedora-42`
 - `quay.io/zzlotnik/toolbox:kube-fedora-42`
 - `quay.io/zzlotnik/toolbox:mco-fedora-42`
 - `quay.io/zzlotnik/toolbox:podman-dev-env`
-
+- `quay.io/zzlotnik/toolbox:workspace-fedora-42`
 
 ## Usage with Toolbx
 
-If you're using Toolbx, you do something like this:
+If you're using Toolbx, you can use these images like this:
 
 ```console
-$ toolbox create --image quay.io/zzlotnik/toolbox:base-fedora-40 workspace
+$ toolbox create --image quay.io/zzlotnik/toolbox:base-fedora-42 workspace
 $ toolbox enter workspace
 ```
 
@@ -32,8 +35,8 @@ Bash script:
 
 set -euo
 
-image="quay.io/zzlotnik/toolbox:base-fedora-40"
-workspace"$(whoami)-workspace"
+image="quay.io/zzlotnik/toolbox:base-fedora-42"
+workspace="$(whoami)-workspace"
 
 podman stop "$workspace"
 podman rm "$workspace"
@@ -56,10 +59,16 @@ Here is a description of what each Containerfile is used for:
   all of the bits that make my CLI experience better. All of the other
   containers within this directory use this as their base image, unless
   mentioned otherwise.
+- `Containerfile.ai-base` - Extends `Containerfile.base` with CLI AI tools such
+  as Claude Code, Gemini CLI, and Goose.
+- `Containerfile.ai-minimal` - A minimal Toolbox container with CLI AI tools such
+  as Claude Code, Gemini CLI, and Goose.
 - `Containerfile.workspace` - This includes my preferred editor (Neovim) and all of
   the tools and runtimes needed for my plugins to work.  It
   also includes my favorite tools for working with Kubernetes (described
   separately below). Consequently, this image is the largest in this repository.
+- `Containerfile.ai-workspace` - Extends `Containerfile.workspace` with CLI AI
+  tools such as Claude Code, Gemini CLI, and Goose.
 - `Containerfile.kube` - This solely includes my favorite Kubernetes tools and
   nothing that is not provided by the base image.
 - `Containerfile.tools-fetcher` - This is intended to be a transient container used to
@@ -74,9 +83,10 @@ Here is a description of what each Containerfile is used for:
   warned :smile:. This image also includes the [OpenShift cluster debug
   tools](https://github.com/openshift/cluster-debug-tools) which may be useful.
 - `Containerfile.podman-dev-env` - This image is a more minimal development
-  environment for hacking on [Podman](https://github.com/containers/podman). It
-  does not contain an editor or any of the fancy terminal goodies as its only
-  inteneded to be used to build and test Podman.
+  environment for hacking on [Podman](https://github.com/containers/podman) and
+  [Toolbox](https://github.com/containers/toolbox). It does not contain an
+  editor or any of the fancy terminal goodies as its only intended to build and
+  test Podman and Toolbox.
 
 ## Kubernetes Tools
 

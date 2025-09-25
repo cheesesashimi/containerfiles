@@ -1,0 +1,3 @@
+FROM quay.io/zzlotnik/toolbox:workspace-fedora-42
+RUN --mount=type=cache,target=/var/cache/dnf,z \
+  dnf install -y --setopt=keepcache=True docker

@@ -1,12 +1,12 @@
 ARG FEDORA_VERSION=42
-FROM registry.fedoraproject.org/fedora-toolbox:${FEDORA_VERSION} AS base
+FROM quay.io/fedora/fedora-toolbox:${FEDORA_VERSION} AS base
 
 FROM quay.io/zzlotnik/toolbox:tools-fetcher AS tools-fetcher
 
 FROM base AS final
 RUN --mount=type=cache,target=/var/cache/dnf,z \
     --mount=type=cache,target=/root/.npm,z \
-  dnf install -y nodejs-npm && \
+  dnf install -y --setopt=keepcache=True nodejs-npm && \
   npm install -g @anthropic-ai/claude-code && \
   npm install -g @google/gemini-cli
 COPY --from=tools-fetcher /goose/goose /usr/bin/goose

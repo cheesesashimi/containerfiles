@@ -1,6 +1,6 @@
 FROM quay.io/zzlotnik/toolbox:tools-fetcher AS tools-fetcher
 
-FROM registry.fedoraproject.org/fedora:42 AS final
+FROM quay.io/fedora/fedora:42 AS final
 RUN --mount=type=cache,target=/var/cache/dnf,z \
-	dnf install -y openssh-clients
+	dnf install -y --setopt=keepcache=True openssh-clients
 COPY --from=tools-fetcher /yq/yq /usr/local/bin/yq

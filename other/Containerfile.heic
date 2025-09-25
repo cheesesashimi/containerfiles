@@ -1,6 +1,6 @@
 # Used for working with HEIC files; such as photos taken from iOS devices
 FROM quay.io/zzlotnik/toolbox:base-fedora-42
 RUN --mount=type=cache,target=/var/cache/dnf,z \
-  dnf -y install http://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-42.noarch.rpm && \
-  dnf -y install http://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-42.noarch.rpm && \
-  dnf -y install libheif heif-pixbuf-loader libheif-devel libheif-tools qt-heif-image-plugin libheif-freeworld
+  dnf install -y --setopt=keepcache=True http://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-42.noarch.rpm && \
+  dnf install -y --setopt=keepcache=True http://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-42.noarch.rpm && \
+  dnf install -y --setopt=keepcache=True libheif heif-pixbuf-loader libheif-devel libheif-tools qt-heif-image-plugin libheif-freeworld

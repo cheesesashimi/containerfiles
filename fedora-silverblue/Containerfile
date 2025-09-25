@@ -2,7 +2,7 @@ ARG FEDORA_VERSION=42
 FROM quay.io/fedora/fedora-silverblue:${FEDORA_VERSION} AS base
 
 ARG FEDORA_VERSION=42
-FROM registry.fedoraproject.org/fedora-toolbox:${FEDORA_VERSION} AS copr
+FROM quay.io/fedora/fedora-toolbox:${FEDORA_VERSION} AS copr
 RUN --mount=type=cache,target=/var/cache/,z \
 	dnf copr enable -y atim/starship && \
 	dnf copr enable -y gmaglione/podman-bootc && \

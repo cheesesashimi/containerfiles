@@ -1,14 +1,12 @@
 ARG FEDORA_VERSION=42
-
 FROM docker.io/library/golang:latest AS builder
-WORKDIR /mco
 ENV GOCACHE="/go/.cache"
 ENV GOMODCACHE="/go/pkg/mod"
+WORKDIR /cluster-debug-tools
 RUN --mount=type=cache,target=/go/.cache,z \
     --mount=type=cache,target=/go/pkg/mod,z \
-    git clone --depth=1 https://github.com/openshift/machine-config-operator.git . && \
-    make -j install-helpers
+  GOBIN=/cluster-debug-tools go install github.com/openshift/cluster-debug-tools/cmd/kubectl-dev_tool@latest
 
 ARG FEDORA_VERSION=42
 FROM quay.io/fedora/fedora:${FEDORA_VERSION} AS final
-COPY --from=builder /mco/_output/linux/amd64/ /usr/local/bin/
+COPY --from=builder /cluster-debug-tools /cluster-debug-tools

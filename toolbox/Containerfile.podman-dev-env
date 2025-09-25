@@ -1,6 +1,6 @@
 FROM quay.io/zzlotnik/toolbox:base-fedora-42
 RUN --mount=type=cache,target=/var/cache/dnf,z \
-  dnf install -y bats \
+  dnf install -y --setopt=keepcache=True \
     bats \
     btrfs-progs-devel \
     bzip2 \
@@ -10,6 +10,7 @@ RUN --mount=type=cache,target=/var/cache/dnf,z \
     crun \
     device-mapper-devel \
     findutils \
+    gcc \
     git \
     glib2-devel \
     glibc-static \
@@ -22,7 +23,9 @@ RUN --mount=type=cache,target=/var/cache/dnf,z \
     libselinux-devel \
     lsof \
     make \
+    meson \
     netavark \
+    ninja \
     nmap-ncat \
     passt \
     podman-gvproxy \
@@ -37,7 +40,10 @@ RUN --mount=type=cache,target=/var/cache/dnf,z \
     qemu-system-x86-core \
     rsync \
     runc \
+    shadow \
+    shadow-utils-subid-devel \
     slirp4netns \
+    systemd \
     unzip \
     virtiofsd \
     which \
