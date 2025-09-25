@@ -1,3 +1,6 @@
-FROM quay.io/zzlotnik/toolbox:workspace-fedora-42
+# The intent behind this Containerfile is to provide a place to work with Bake
+# files since Podman / Buildah don't yet support them.
+ARG FEDORA_VERSION=42
+FROM quay.io/zzlotnik/toolbox:base-fedora-${FEDORA_VERSION}
 RUN --mount=type=cache,target=/var/cache/dnf,z \
   dnf install -y --setopt=keepcache=True docker
