@@ -165,6 +165,12 @@ def get_toolbox_labels(container_name, fedora_version):
     ]
 
 
+def prune_system():
+    args = ["podman", "system", "prune", "--force", "--all"]
+    logger.info(f"$ {' '.join(args)}")
+    subprocess.run(args)
+
+
 def get_fedora_images(fedora_version):
     tag_suffix = f"fedora-{fedora_version}"
 
@@ -290,9 +296,7 @@ def main(args):
                     clear_image_pullspec(base_image)
 
             if args.prune_after_batch:
-                args = ["podman", "system", "prune", "--force", "--all"]
-                logger.info(f"$ ' '.join(args)")
-                subprocess.run(args)
+                prune_system()
 
 
 if __name__ == "__main__":
