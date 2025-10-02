@@ -241,6 +241,10 @@ def main(args):
 
     standalone_images = [
         Image(
+            "tools-fetcher/Containerfile",
+            ["quay.io/zzlotnik/toolbox:tools-fetcher"],
+        ),
+        Image(
             "devex/Containerfile.epel9",
             ["quay.io/zzlotnik/devex:epel", "quay.io/zzlotnik/devex:epel9"],
         ),
@@ -251,10 +255,6 @@ def main(args):
         Image(
             "ocp-ssh-debug/Containerfile",
             ["quay.io/zzlotnik/testing:ssh-debug-pod"],
-        ),
-        Image(
-            "tools-fetcher/Containerfile",
-            ["quay.io/zzlotnik/toolbox:tools-fetcher"],
         ),
     ]
 
