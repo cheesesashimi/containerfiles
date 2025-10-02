@@ -1,0 +1,4 @@
+ARG FEDORA_VERSION=42
+FROM quay.io/fedora/fedora-toolbox:${FEDORA_VERSION}
+RUN	dnf copr enable -y atim/starship && \
+	dnf copr enable -y alternateved/eza

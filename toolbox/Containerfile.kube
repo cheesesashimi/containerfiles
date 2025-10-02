@@ -4,9 +4,9 @@ FROM quay.io/fedora/fedora-toolbox:${FEDORA_VERSION} AS base
 FROM quay.io/zzlotnik/toolbox:tools-fetcher AS tools-fetcher
 
 FROM base AS final
-COPY --from=tools-fetcher /dyff/dyff /usr/local/bin/
-COPY --from=tools-fetcher /k9s/k9s /usr/local/bin/k9s
-COPY --from=tools-fetcher /oc/kubectl /usr/local/bin/kubectl
-COPY --from=tools-fetcher /oc/oc /usr/local/bin/oc
-COPY --from=tools-fetcher /omc/omc /usr/local/bin/omc
-COPY --from=tools-fetcher /yq/yq /usr/local/bin/yq
+COPY --from=tools-fetcher /usr/local/bin/dyff /usr/local/bin/
+COPY --from=tools-fetcher /usr/local/bin/k9s /usr/local/bin/k9s
+COPY --from=tools-fetcher /usr/local/bin/kubectl /usr/local/bin/kubectl
+COPY --from=tools-fetcher /usr/local/bin/oc /usr/local/bin/oc
+COPY --from=tools-fetcher /usr/local/bin/omc /usr/local/bin/omc
+COPY --from=tools-fetcher /usr/local/bin/yq /usr/local/bin/yq

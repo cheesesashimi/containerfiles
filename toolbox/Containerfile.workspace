@@ -2,7 +2,13 @@ ARG FEDORA_VERSION=42
 FROM quay.io/zzlotnik/toolbox:base-fedora-${FEDORA_VERSION} AS base
 
 FROM quay.io/zzlotnik/toolbox:tools-fetcher AS tools-fetcher
-FROM quay.io/zzlotnik/devex:zacks-devex-helpers AS helpers
+FROM quay.io/zzlotnik/devex:zacks-devex-helpers AS zacks-devex-helpers
+FROM quay.io/zzlotnik/devex:cluster-debug-tools AS cluster-debug-tools
+
+FROM scratch AS tools
+COPY --from=tools-fetcher /usr/local/bin/ /usr/local/bin/
+COPY --from=zacks-devex-helpers /usr/local/bin/ /usr/local/bin/
+COPY --from=cluster-debug-tools /usr/local/bin/ /usr/local/bin/
 
 FROM base AS final
 ARG FEDORA_VERSION=${FEDORA_VERSION}
@@ -52,16 +58,5 @@ RUN --mount=type=cache,target=/var/cache/dnf,z \
 	# Podman from within the container to eliminate needing to open the
 	# Podman socket.
 	ln -s /usr/bin/podman-remote /usr/bin/podman
-COPY --from=tools-fetcher /dyff/dyff /usr/local/bin/
-COPY --from=tools-fetcher /gomplate/gomplate /usr/local/bin/gomplate
-COPY --from=helpers /usr/local/bin/ /usr/local/bin/
-COPY --from=tools-fetcher /k9s/k9s /usr/local/bin/k9s
-COPY --from=tools-fetcher /oc/kubectl /usr/local/bin/kubectl
-COPY --from=tools-fetcher /oc/oc /usr/local/bin/oc
-COPY --from=tools-fetcher /omc/omc /usr/local/bin/omc
-COPY --from=tools-fetcher /yq/yq /usr/local/bin/yq
-COPY --from=tools-fetcher /pup/pup /usr/local/bin/pup
-COPY --from=tools-fetcher /antibody/antibody /usr/local/bin/antibody
-COPY --from=tools-fetcher /chezmoi/chezmoi /usr/local/bin/chezmoi
-COPY --from=tools-fetcher /dive/dive /usr/local/bin/dive
-COPY --from=tools-fetcher /golangci-lint/golangci-lint /usr/local/bin/golangci-lint
+COPY --from=tools /usr/local/bin/ /usr/local/bin/
+
