@@ -27,7 +27,7 @@ def clear_image_pullspec(pullspec):
     logger.info(f"Disk space before clear:")
     subprocess.run(["df", "-h"]).check_returncode()
 
-    args = ["podman", "image", "rm", pullspec]
+    args = ["podman", "image", "rm", "--ignore", pullspec]
     logger.info(f"Clearing {pullspec}")
     logger.info(f"$ {' '.join(args)}")
     subprocess.run(args).check_returncode()
@@ -107,6 +107,7 @@ class Image:
             if pushspec != self._first_pushspec:
                 args = ["podman", "tag", self._first_pushspec, pushspec]
                 logger.info(f"Tagging {self._first_pushspec} as {pushspec}")
+                logger.info(f"$ {' '.join(args)}")
                 subprocess.run(args).check_returncode()
 
             args = ["podman", "push", "--authfile", authfile, pushspec]
