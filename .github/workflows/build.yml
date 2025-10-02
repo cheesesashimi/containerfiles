@@ -19,11 +19,38 @@ jobs:
       uses: actions/checkout@v4
       with:
         fetch-depth: 0
+    # Cribbed from: https://github.com/containers/ramalama/blob/ea05811098d17bb2d3b5e97b6e08f1897123abe2/.github/workflows/ci-images.yml#L26-L35
+    - name: Upgrade to Podman 5
+      run: |
+        set -e
+        # Enable universe repository which contains podman
+        sudo add-apt-repository "deb http://old-releases.ubuntu.com/ubuntu oracular universe"
+        # Update package lists
+        sudo apt-get update
+        sudo apt-get purge firefox
+        # Install specific podman version
+        sudo apt-get upgrade
     - name: Get Podman version
       run: |-
         #!/usr/bin/env bash
         set -euo
         podman version
+    # Cribbed from: https://github.com/containers/ramalama/blob/ea05811098d17bb2d3b5e97b6e08f1897123abe2/.github/workflows/ci-images.yml#L49-L62
+    - name: Free Disk Space Linux
+      shell: bash
+      run: |
+        sudo mkdir -m a=rwx -p /mnt/tmp /mnt/runner
+        sudo mkdir -m o=rwx -p /home/runner/.local
+        sudo chown runner:runner /mnt/runner /home/runner/.local
+        sudo mount --bind /mnt/runner /home/runner/.local
+        sudo rm -rf \
+          /usr/share/dotnet /usr/local/lib/android /opt/ghc \
+          /usr/local/share/powershell /usr/share/swift /usr/local/.ghcup \
+          /usr/share/dotnet /usr/lib/jvm /opt/hostedtoolcache/CodeQL \
+          "$AGENT_TOOLSDIRECTORY" || true
+        sudo swapoff -a
+        sudo rm -f /mnt/Swapfile
+
     - name: Build and Push
       env:
         PUSH_SECRET: ${{ secrets.QUAY_PUSH_CREDS }}
@@ -32,5 +59,5 @@ jobs:
         #!/usr/bin/env bash
         authfile_dir="$(mktemp -d)"
         echo "$PUSH_SECRET" > "$authfile_dir/authfile"
-        ./build-and-push-containers.py --authfile "$authfile_dir/authfile" --clear-images
+        ./build-and-push-containers.py --authfile "$authfile_dir/authfile" --prune-after-batch
         rm -rf "$authfile_dir"

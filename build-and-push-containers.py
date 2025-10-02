@@ -289,6 +289,11 @@ def main(args):
                 for base_image in batch_base_images:
                     clear_image_pullspec(base_image)
 
+            if args.prune_after_batch:
+                args = ["podman", "system", "prune", "--force", "--all"]
+                logger.info(f"$ ' '.join(args)")
+                subprocess.run(args)
+
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
@@ -334,6 +339,14 @@ if __name__ == "__main__":
         action="store_true",
         default=False,
         help="Clear images after build to conserve disk space (primarily for GitHub Actions)",
+    )
+
+    parser.add_argument(
+        "--prune-after-batch",
+        dest="prune_after_batch",
+        action="store_true",
+        default=False,
+        help="Run podman system prune after each build batch (primarily for GitHub Actions)",
     )
 
     parser.add_argument(
