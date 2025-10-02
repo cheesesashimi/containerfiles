@@ -5,7 +5,6 @@ ARG FEDORA_VERSION=42
 FROM quay.io/fedora/fedora-toolbox:${FEDORA_VERSION} AS copr
 RUN --mount=type=cache,target=/var/cache/,z \
 	dnf copr enable -y atim/starship && \
-	dnf copr enable -y gmaglione/podman-bootc && \
 	dnf copr enable -y alternateved/eza
 
 FROM quay.io/zzlotnik/toolbox:tools-fetcher AS tools-fetcher
@@ -34,7 +33,6 @@ RUN --mount=type=cache,target=/var/cache/rpm-ostree,z \
 		kitty \
 		lua \
 		nvtop \
-		podman-bootc \
 		# Ramalama wants to be on the host instead of in a container, which makes
 		# sense because it manages containers.
 		python3-ramalama \
