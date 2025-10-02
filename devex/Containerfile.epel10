@@ -1,0 +1,8 @@
+FROM quay.io/centos/centos:stream10 AS epel
+RUN --mount=type=cache,target=/var/cache/dnf,z \
+  dnf install -y --setopt=keepcache=True epel-release && \
+  sed -i 's/\$stream/10-stream/g' /etc/yum.repos.d/centos*.repo
+
+FROM scratch AS final
+COPY --from=epel /etc/yum.repos.d /etc/yum.repos.d
+COPY --from=epel /etc/pki/rpm-gpg/RPM-GPG-KEY-* /etc/pki/rpm-gpg/

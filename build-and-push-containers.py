@@ -15,54 +15,12 @@ import tempfile
 logger = logging.getLogger(__name__)
 
 GIT_REPO = "https://github.com/cheesesashimi/containerfiles"
-VERSION_REGEX = re.compile(r"^v[0-9].*$")
-
-
-def get_latest_stable_openshift_release() -> str:
-    url = "https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/stable/release.txt"
-    cmd = subprocess.run(["curl", "-s", "-L", url], capture_output=True)
-    cmd.check_returncode()
-    for line in cmd.stdout.decode("utf-8").split("\n"):
-        if "Version:" in line:
-            return line.replace("Version:", "").strip()
 
 
 def get_git_commit_sha() -> str:
     cmd = subprocess.run(["git", "rev-parse", "HEAD"], capture_output=True)
     cmd.check_returncode()
     return cmd.stdout.decode("utf-8").strip()
-
-
-def get_latest_commit_from_github(org_and_repo: str, branch: str) -> str:
-    path = f"/repos/{org_and_repo}/commits/{branch}"
-    results = curl_or_github_cli(path)
-    return results["sha"]
-
-
-def get_sha_for_github_tag(org_and_repo: str, tag: str) -> str:
-    path = f"/repos/{org_and_repo}/git/ref/tags/{tag}"
-    results = curl_or_github_cli(path)
-    return results["object"]["sha"]
-
-
-def get_latest_github_release_version(org_and_repo: str) -> tuple[str, str]:
-    path = f"/repos/{org_and_repo}/releases/latest"
-    results = curl_or_github_cli(path)
-    return results["tag_name"]
-
-
-def curl_or_github_cli(path: str) -> dict:
-    url = f"https://api.github.com{path}"
-    args = ["curl", "-s", url]
-    if shutil.which("gh"):
-        logger.info(f"Using GitHub CLI for request for {path}")
-        args = ["gh", "api", path]
-    else:
-        logger.info(f"Using curl for request {path}")
-
-    cmd = subprocess.run(args, capture_output=True)
-    cmd.check_returncode()
-    return json.loads(cmd.stdout)
 
 
 def clear_image_pullspec(pullspec):
@@ -78,86 +36,10 @@ def clear_image_pullspec(pullspec):
     subprocess.run(["df", "-h"]).check_returncode()
 
 
-def get_github_labels_for_repo(org_and_repo: str, tag: str = None, commit: str = None):
-    org, repo = org_and_repo.split("/")
-    url_label = f"com.github.{org}.{repo}"
-
-    out = [
-        f"{url_label}=https://github.com/{org_and_repo}",
-    ]
-
-    if tag:
-        out.append(f"{url_label}.tag={tag}")
-
-    if commit:
-        out.append(f"{url_label}.ref={commit}")
-
-    return out
-
-
-@dataclass
-class GithubPackage:
-    name: str
-    org_and_repo: str
-
-    def __post_init__(self):
-        self._cachefile_name = f"{self.name}.json"
-        if os.path.exists(self._cachefile_name):
-            with open(self._cachefile_name, "r") as cachefile:
-                loaded = json.load(cachefile)
-                self._latest_tag = loaded.get("latest_tag", "")
-                self._commit = loaded.get("commit", "")
-        else:
-            self._latest_tag = ""
-            self._commit = ""
-
-    def delete_cachefile(self):
-        os.remove(self._cachefile_name)
-
-    def _cache(self):
-        data = {
-            "name": self.name,
-            "org_and_repo": self.org_and_repo,
-            "commit": self._commit,
-            "latest_tag": self._latest_tag,
-        }
-
-        with open(self._cachefile_name, "w") as cachefile:
-            json.dump(data, cachefile)
-
-    def latest_tag(self) -> str:
-        if self._latest_tag != "":
-            return self._latest_tag
-
-        self._latest_tag = get_latest_github_release_version(self.org_and_repo)
-        self._cache()
-        return self._latest_tag
-
-    def commit(self) -> str:
-        if self._commit != "":
-            return self._commit
-
-        self._commit = get_sha_for_github_tag(self.org_and_repo, self.latest_tag())
-        self._cache()
-        return self._commit
-
-    def build_arg(self) -> str:
-        upper_name = self.name.upper().replace("-", "_")
-        tag = self.latest_tag()
-        if VERSION_REGEX.match(tag):
-            tag = tag[1:]
-        return f"{upper_name}_VERSION={tag}"
-
-    def labels(self) -> str:
-        return get_github_labels_for_repo(
-            self.org_and_repo, self.latest_tag(), self.commit()
-        )
-
-
 @dataclass
 class Image:
     containerfile: str
-    pushspec: str
+    pushspecs: str
     build_args: list = field(default_factory=list)
     labels: list = field(default_factory=list)
 
@@ -182,6 +64,8 @@ class Image:
             if value:
                 self.labels.append(label.replace(var, value))
 
+        self._first_pushspec = self.pushspecs[0]
+
     @property
     def build_context(self) -> str:
         return self._build_context
@@ -197,7 +81,7 @@ class Image:
             "podman",
             "build",
             "--tag",
-            self.pushspec,
+            self._first_pushspec,
             "--file",
             self.containerfile,
         ]
@@ -219,13 +103,20 @@ class Image:
         subprocess.run(args).check_returncode()
 
     def push(self, authfile: str):
-        args = ["podman", "push", "--authfile", authfile, self.pushspec]
-        logger.info(f"Pushing {self.pushspec}")
-        logger.info(f"$ {' '.join(args)}")
-        subprocess.run(args).check_returncode()
+        for pushspec in self.pushspecs:
+            if pushspec != self._first_pushspec:
+                args = ["podman", "tag", self._first_pushspec, pushspec]
+                logger.info(f"Tagging {self._first_pushspec} as {pushspec}")
+                subprocess.run(args).check_returncode()
+
+            args = ["podman", "push", "--authfile", authfile, pushspec]
+            logger.info(f"Pushing {pushspec}")
+            logger.info(f"$ {' '.join(args)}")
+            subprocess.run(args).check_returncode()
 
     def clear(self):
-        clear_image_pullspec(self.pushspec)
+        for pushspec in self.pushspecs:
+            clear_image_pullspec(pushspec)
 
     def get_base_images(self):
         build_arg_dict = {}
@@ -273,10 +164,60 @@ def get_toolbox_labels(container_name, fedora_version):
     ]
 
 
-def get_cluster_debug_tools_labels() -> list:
-    org_and_repo = "openshift/cluster-debug-tools"
-    commit = get_latest_commit_from_github(org_and_repo, "master")
-    return get_github_labels_for_repo(org_and_repo, None, commit)
+def get_fedora_images(fedora_version):
+    tag_suffix = f"fedora-{fedora_version}"
+
+    fedora_version_build_args = [f"FEDORA_VERSION={fedora_version}"]
+
+    return [
+        Image(
+            "toolbox/Containerfile.base",
+            [f"quay.io/zzlotnik/toolbox:base-{tag_suffix}"],
+            fedora_version_build_args,
+            get_toolbox_labels("base", fedora_version),
+        ),
+        Image(
+            "toolbox/Containerfile.kube",
+            [f"quay.io/zzlotnik/toolbox:kube-{tag_suffix}"],
+            fedora_version_build_args,
+            get_toolbox_labels("kube", fedora_version),
+        ),
+        Image(
+            "toolbox/Containerfile.mco",
+            [f"quay.io/zzlotnik/toolbox:mco-{tag_suffix}"],
+            fedora_version_build_args,
+            get_toolbox_labels("mco", fedora_version),
+        ),
+        Image(
+            "toolbox/Containerfile.podman-dev-env",
+            ["quay.io/zzlotnik/toolbox:podman-dev-env"],
+            fedora_version_build_args,
+            get_toolbox_labels("podman-dev-env", fedora_version),
+        ),
+        Image(
+            "toolbox/Containerfile.workspace",
+            [f"quay.io/zzlotnik/toolbox:workspace-{tag_suffix}"],
+            fedora_version_build_args,
+            get_toolbox_labels("workspace", fedora_version),
+        ),
+        Image(
+            "toolbox/Containerfile.ai-workspace",
+            [f"quay.io/zzlotnik/toolbox:ai-workspace-{tag_suffix}"],
+            fedora_version_build_args,
+            get_toolbox_labels("ai-workspace", fedora_version),
+        ),
+        Image(
+            "toolbox/Containerfile.ai-minimal",
+            [f"quay.io/zzlotnik/toolbox:ai-minimal-{tag_suffix}"],
+            fedora_version_build_args,
+            get_toolbox_labels("ai-minimal", fedora_version),
+        ),
+        Image(
+            "fedora-silverblue/Containerfile",
+            [f"quay.io/zzlotnik/os-images:fedora-silverblue-{fedora_version}"],
+            fedora_version_build_args,
+        ),
+    ]
 
 
 def main(args):
@@ -291,120 +232,29 @@ def main(args):
 
         logger.info(f"Will push using creds in {args.authfile}")
 
-    github_packages = [
-        GithubPackage("antibody", "getantibody/antibody"),
-        GithubPackage("chezmoi", "twpayne/chezmoi"),
-        GithubPackage("dive", "wagoodman/dive"),
-        GithubPackage("gomplate", "hairyhenderson/gomplate"),
-        GithubPackage("golangci-lint", "golangci/golangci-lint"),
-        GithubPackage("k9s", "derailed/k9s"),
-        GithubPackage("omc", "gmeghnag/omc"),
-        GithubPackage("pup", "ericchiang/pup"),
-        GithubPackage("goose", "block/goose"),
-    ]
-
-    github_build_labels = []
-    for package in github_packages:
-        github_build_labels += package.labels()
-
-    github_build_args = [package.build_arg() for package in github_packages]
-
-    ocp_version = get_latest_stable_openshift_release()
-    github_build_args.append(f"OCP_VERSION={ocp_version}")
-    github_build_labels.append(f"com.openshift.version={ocp_version}")
-
-    cluster_debug_tools_ref = get_latest_commit_from_github(
-        "openshift/cluster-debug-tools", "master"
-    )
-
-    transient_images_to_build = [
-        Image(
-            "toolbox/Containerfile.tools-fetcher",
-            "quay.io/zzlotnik/toolbox:tools-fetcher",
-            github_build_args,
-            github_build_labels,
-        ),
-    ]
-
-    transient_images = frozenset(
-        [image.pushspec for image in transient_images_to_build]
-    )
-
     standalone_images = [
         Image(
-            "devex/Containerfile.epel",
-            "quay.io/zzlotnik/devex:epel",
+            "devex/Containerfile.epel9",
+            ["quay.io/zzlotnik/devex:epel", "quay.io/zzlotnik/devex:epel9"],
+        ),
+        Image(
+            "devex/Containerfile.epel10",
+            ["quay.io/zzlotnik/devex:epel10"],
         ),
         Image(
             "ocp-ssh-debug/Containerfile",
-            "quay.io/zzlotnik/testing:ssh-debug-pod",
-        ),
-    ]
-
-    fedora_version = "42"
-
-    tag_suffix = f"fedora-{fedora_version}"
-
-    fedora_version_build_args = [f"FEDORA_VERSION={fedora_version}"]
-
-    fedora_42_images = [
-        Image(
-            "devex/Containerfile.zacks-devex-helpers",
-            "quay.io/zzlotnik/devex:zacks-devex-helpers",
+            ["quay.io/zzlotnik/testing:ssh-debug-pod"],
         ),
         Image(
-            "toolbox/Containerfile.base",
-            f"quay.io/zzlotnik/toolbox:base-{tag_suffix}",
-            fedora_version_build_args,
-            get_toolbox_labels("base", fedora_version),
-        ),
-        Image(
-            "toolbox/Containerfile.kube",
-            f"quay.io/zzlotnik/toolbox:kube-{tag_suffix}",
-            fedora_version_build_args,
-            get_toolbox_labels("kube", fedora_version),
-        ),
-        Image(
-            "toolbox/Containerfile.mco",
-            f"quay.io/zzlotnik/toolbox:mco-{tag_suffix}",
-            fedora_version_build_args,
-            get_toolbox_labels("mco", fedora_version),
-        ),
-        Image(
-            "toolbox/Containerfile.podman-dev-env",
-            "quay.io/zzlotnik/toolbox:podman-dev-env",
-            fedora_version_build_args,
-            get_toolbox_labels("podman-dev-env", fedora_version),
-        ),
-        Image(
-            "toolbox/Containerfile.workspace",
-            f"quay.io/zzlotnik/toolbox:workspace-{tag_suffix}",
-            fedora_version_build_args,
-            get_toolbox_labels("workspace", fedora_version),
-        ),
-        Image(
-            "toolbox/Containerfile.ai-workspace",
-            f"quay.io/zzlotnik/toolbox:ai-workspace-{tag_suffix}",
-            fedora_version_build_args,
-            get_toolbox_labels("ai-workspace", fedora_version),
-        ),
-        Image(
-            "toolbox/Containerfile.ai-minimal",
-            f"quay.io/zzlotnik/toolbox:ai-minimal-{tag_suffix}",
-            fedora_version_build_args,
-            get_toolbox_labels("ai-minimal", fedora_version),
-        ),
-        Image(
-            "fedora-silverblue/Containerfile",
-            f"quay.io/zzlotnik/os-images:fedora-silverblue-{fedora_version}",
-            fedora_version_build_args,
+            "tools-fetcher/Containerfile",
+            ["quay.io/zzlotnik/toolbox:tools-fetcher"],
         ),
     ]
 
     image_batches = [
-        transient_images_to_build,
-        fedora_42_images,
         standalone_images,
+        get_fedora_images("42"),
+        get_fedora_images("43"),
     ]
 
     for image_batch in image_batches:
@@ -412,10 +262,9 @@ def main(args):
             if image.containerfile_exists():
                 logger.info(f"Containerfile source: {image.containerfile}")
                 logger.info(f"Build context: {image.build_context}")
-                logger.info(f"Pushspec: {image.pushspec}")
+                logger.info(f"Pushspec(s): {image.pushspecs}")
                 logger.info(f"Base images: {image.get_base_images()}")
                 logger.info(f"Build args (may not be accurate): {image.build_args}")
-                logger.info(f"Is transient: {image.pushspec in transient_images}")
                 logger.info("")
             else:
                 logger.error(f"Missing containerfile for {image}")
@@ -429,21 +278,15 @@ def main(args):
                 batch_base_images.update(image.get_base_images())
                 image.build()
 
-                if args.authfile and image.pushspec not in transient_images:
+                if args.authfile:
                     image.push(args.authfile)
 
-                if args.clear_images and image.pushspec not in transient_images:
+                if args.clear_images:
                     image.clear()
 
             if args.clear_images:
                 for base_image in batch_base_images:
-                    if base_image not in transient_images:
-                        clear_image_pullspec(base_image)
-
-    if not args.no_clear_github_cache:
-        for package in github_packages:
-            package.delete_cachefile()
-            logger.info(f"Removed cachefile for {package.name}")
+                    clear_image_pullspec(base_image)
 
 
 if __name__ == "__main__":
@@ -506,14 +349,6 @@ if __name__ == "__main__":
         action="store_true",
         default=False,
         help="Validates that the Containerfiles are present and prints all data from them, excluding build args.",
-    )
-
-    parser.add_argument(
-        "--no-clear-github-cache",
-        dest="no_clear_github_cache",
-        action="store_true",
-        default=False,
-        help="Skips removing the Github cache files at the end.",
     )
 
     args = parser.parse_args()

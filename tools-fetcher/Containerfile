@@ -1,0 +1,9 @@
+FROM quay.io/fedora/fedora-toolbox:42 AS prep
+
+WORKDIR /usr/local/bin
+RUN curl 'https://raw.githubusercontent.com/devmatteini/dra/refs/heads/main/install.sh' | /bin/bash
+COPY install.sh /tmp/install.sh
+COPY get-arch.py /usr/local/bin/get-arch
+
+FROM prep AS final
+RUN /tmp/install.sh
