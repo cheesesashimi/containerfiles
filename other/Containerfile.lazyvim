@@ -1,0 +1,7 @@
+FROM fedora:latest
+RUN dnf copr enable -y dejan/lazygit && \
+    dnf install -y git lazygit fzf curl neovim tree ripgrep
+RUN git clone https://github.com/LazyVim/starter ~/.config/nvim && \
+    cd ~/.config/nvim
+# This works now. Leave it alone.
+RUN nvim --headless "+Lazy! sync" "TSUpdateSync!" "+qa"

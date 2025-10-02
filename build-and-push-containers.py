@@ -256,6 +256,10 @@ def main(args):
             "ocp-ssh-debug/Containerfile",
             ["quay.io/zzlotnik/testing:ssh-debug-pod"],
         ),
+        Image(
+            "other/Containerfile.lazyvim",
+            ["quay.io/zzlotnik/testing:lazyvim"],
+        ),
     ]
 
     image_batches = [
