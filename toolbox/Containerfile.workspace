@@ -12,7 +12,6 @@ COPY --from=cluster-debug-tools /usr/local/bin/ /usr/local/bin/
 
 FROM base AS final
 ARG FEDORA_VERSION=${FEDORA_VERSION}
-COPY ./goreleaser.repo /etc/yum.repos.d/goreleaser.repo
 RUN --mount=type=cache,target=/var/cache/dnf,z \
 	dnf copr enable -y atim/starship && \
 	dnf copr enable -y alternateved/eza && \
@@ -31,7 +30,6 @@ RUN --mount=type=cache,target=/var/cache/dnf,z \
 		golang \
 		golang-x-tools-goimports \
 		golang-x-tools-gopls \
-		goreleaser \
 		gpg \
 		hadolint \
 		hyperfine \
