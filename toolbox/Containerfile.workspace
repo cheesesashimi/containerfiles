@@ -18,7 +18,6 @@ RUN --mount=type=cache,target=/var/cache/dnf,z \
 	dnf install --setopt=keepcache=True -y \
 		bat \
 		btop \
-		cargo \
 		curl \
 		delve \
 		eza \
@@ -32,7 +31,6 @@ RUN --mount=type=cache,target=/var/cache/dnf,z \
 		golang-x-tools-gopls \
 		gpg \
 		hadolint \
-		hyperfine \
 		jq \
 		neovim \
 		nodejs \
@@ -43,7 +41,6 @@ RUN --mount=type=cache,target=/var/cache/dnf,z \
 		python3-neovim \
 		python3-pyyaml \
 		ripgrep \
-		rust-analyzer \
 		shellcheck \
 		skopeo \
 		starship \

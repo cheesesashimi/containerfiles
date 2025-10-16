@@ -18,7 +18,6 @@ RUN --mount=type=cache,target=/var/cache/dnf,z \
 		git \
 		git-delta \
 		gpg \
-		hyperfine \
 		jq \
 		lua \
 		pinentry-tty \
