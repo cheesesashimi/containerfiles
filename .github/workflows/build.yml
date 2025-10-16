@@ -7,6 +7,15 @@ on:
   push:
     branches:
       - 'main'
+    paths:
+      - 'devex/**'
+      - 'fedora-coreos/**'
+      - 'fedora-silverblue/**'
+      - 'ocp-ssh-debug/**'
+      - 'toolbox/**'
+      - 'tools-fetcher/**'
+      - 'build-and-push-containers.py'
+      - '!**/*.md'
 
 permissions:
   contents: write
