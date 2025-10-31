@@ -8,7 +8,6 @@ RUN --mount=type=cache,target=/var/cache/,z \
 	dnf copr enable -y alternateved/eza
 
 FROM quay.io/zzlotnik/toolbox:tools-fetcher AS tools-fetcher
-FROM quay.io/zzlotnik/devex:bcvk AS bcvk
 FROM quay.io/zzlotnik/hotdogcart:latest AS hotdogcart
 
 
@@ -16,7 +15,7 @@ FROM base AS final
 COPY --from=copr /etc/yum.repos.d/_copr* /etc/yum.repos.d/
 COPY --from=tools-fetcher /usr/local/bin/yq /usr/local/bin/yq
 COPY --from=hotdogcart /hotdogcart /usr/local/bin/hotdogcart
-COPY --from=bcvk /usr/local/bin/bcvk /usr/local/bin/bcvk
+COPY --from=tools-fetcher /usr/local/bin/bcvk /usr/local/bin/bcvk
 RUN --mount=type=cache,target=/var/cache/rpm-ostree,z \
 	rpm-ostree install -y \
 		# Needed for non-free ffmpeg packages.

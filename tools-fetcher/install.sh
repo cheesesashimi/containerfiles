@@ -19,6 +19,11 @@ declare -A repos=(
   ["wagoodman/dive"]=""
 )
 
+# This only has builds for x86_64 at this time.
+if [[ "$(uname -m)" == "x86_64" ]]; then
+  repos+=(["bootc-dev/bcvk"]="bcvk-$(uname -m)-unknown-linux-gnu")
+fi
+
 root_path="/out"
 
 for repo in "${!repos[@]}"; do
