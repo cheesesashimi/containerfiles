@@ -40,29 +40,38 @@ def clear_image_pullspec(pullspec):
 class Image:
     containerfile: str
     pushspecs: str
-    build_args: list = field(default_factory=list)
-    labels: list = field(default_factory=list)
+    build_args: dict = field(default_factory=dict)
+    labels: dict = field(default_factory=dict)
 
     def __post_init__(self):
         git_ref = get_git_commit_sha()
         src = f"{GIT_REPO}/blob/{git_ref}/{self.containerfile}"
         self._build_context = os.path.dirname(self.containerfile)
-        self.labels.append(f"org.opencontainers.image.url={GIT_REPO}")
-        self.labels.append(f"org.opencontainers.image.source={src}")
-        self.labels.append(f"org.opencontainers.image.revision={git_ref}")
+        self.labels.update(
+            {
+                "org.opencontainers.image.url": GIT_REPO,
+                "org.opencontainers.image.source": src,
+                "org.opencontainers.image.revision": git_ref,
+            }
+        )
 
         conditional_labels = {
-            "GITHUB_ACTIONS": "com.github.actions=",
-            "GITHUB_RUN_ID": "com.github.actions.runId=GITHUB_RUN_ID",
-            "GITHUB_RUN_NUMBER": "com.github.actions.runNumber=GITHUB_RUN_NUMBER",
-            "GITHUB_WORKFLOW": "com.github.actions.workflow=GITHUB_WORKFLOW",
-            "RUNNER_NAME": "com.github.actions.runnerName=RUNNER_NAME",
+            "GITHUB_ACTIONS": "com.github.actions",
+            "GITHUB_RUN_ID": "com.github.actions.runId",
+            "GITHUB_RUN_NUMBER": "com.github.actions.runNumber",
+            "GITHUB_WORKFLOW": "com.github.actions.workflow",
+            "RUNNER_NAME": "com.github.actions.runnerName",
         }
+
+        conditional_labels_to_add = {}
 
         for var, label in conditional_labels.items():
             value = os.getenv(var)
             if value:
-                self.labels.append(label.replace(var, value))
+                conditional_labels_to_add[label] = var
+
+        if len(conditional_labels_to_add) > 0:
+            self.labels.update(conditional_labels_to_add)
 
         self._first_pushspec = self.pushspecs[0]
 
@@ -86,13 +95,13 @@ class Image:
             self.containerfile,
         ]
 
-        for build_arg in self.build_args:
+        for key, value in self.build_args.items():
             args.append("--build-arg")
-            args.append(build_arg)
+            args.append(f"{key}={value}")
 
-        for label in self.labels:
+        for key, value in self.labels.items():
             args.append("--label")
-            args.append(label)
+            args.append(f"{key}={value}")
 
         build_context = f"./{self.build_context}/"
 
@@ -120,11 +129,6 @@ class Image:
             clear_image_pullspec(pushspec)
 
     def get_base_images(self):
-        build_arg_dict = {}
-        for arg in self.build_args:
-            key, val = arg.split("=")
-            build_arg_dict[key] = val
-
         aliases = set()
         base_images = set()
 
@@ -143,7 +147,7 @@ class Image:
             if line.split(" ")[1] in aliases:
                 continue
 
-            for key, val in build_arg_dict.items():
+            for key, val in self.build_args.items():
                 if key in line:
                     inline_key = "$" + "{" + key + "}"
                     line = line.replace(inline_key, val)
@@ -156,13 +160,13 @@ class Image:
 
 
 def get_toolbox_labels(container_name, fedora_version):
-    return [
-        'com.github.containers.toolbox="true"',
-        f"name={container_name}",
-        'usage="This image is meant to be used with the toolbox(1) command"',
-        f"summary=Fedora {fedora_version} of {container_name}",
-        'maintainer="Zack Zlotnik (zzlotnik@redhat.com)"',
-    ]
+    return {
+        "com.github.containers.toolbox": "true",
+        "name": container_name,
+        "usage": "This image is meant to be used with the toolbox(1) command",
+        "summary": f"Fedora {fedora_version} of {container_name}",
+        "maintainer": "Zack Zlotnik (zzlotnik@redhat.com)",
+    }
 
 
 def prune_system():
@@ -174,7 +178,7 @@ def prune_system():
 def get_fedora_images(fedora_version):
     tag_suffix = f"fedora-{fedora_version}"
 
-    fedora_version_build_args = [f"FEDORA_VERSION={fedora_version}"]
+    fedora_version_build_args = {"FEDORA_VERSION": fedora_version}
 
     return [
         Image(
@@ -270,7 +274,6 @@ def main(args):
 
     image_batches = [
         standalone_images,
-        get_fedora_images("42"),
         get_fedora_images("43"),
     ]
 
@@ -281,7 +284,12 @@ def main(args):
                 logger.info(f"Build context: {image.build_context}")
                 logger.info(f"Pushspec(s): {image.pushspecs}")
                 logger.info(f"Base images: {image.get_base_images()}")
-                logger.info(f"Build args (may not be accurate): {image.build_args}")
+                build_args_cli = [
+                    f"{key}={value}" for key, value in image.build_args.items()
+                ]
+                logger.info(f"Build args (may not be accurate): {build_args_cli}")
+                labels_cli = [f"{key}={value}" for key, value in image.labels.items()]
+                logger.info(f"Labels: {labels_cli}")
                 logger.info("")
             else:
                 logger.error(f"Missing containerfile for {image}")
