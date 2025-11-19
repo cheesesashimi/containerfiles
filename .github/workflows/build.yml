@@ -28,6 +28,13 @@ jobs:
       uses: actions/checkout@v4
       with:
         fetch-depth: 0
+    - name: Validate script
+      run: |-
+        #!/usr/bin/env bash
+        set -euo
+
+        python3 --version
+        ./build-and-push-containers.py --validate-only
     # Cribbed from: https://github.com/containers/ramalama/blob/ea05811098d17bb2d3b5e97b6e08f1897123abe2/.github/workflows/ci-images.yml#L26-L35
     - name: Upgrade to Podman 5
       run: |
