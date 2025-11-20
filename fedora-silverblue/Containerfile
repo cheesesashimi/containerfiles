@@ -13,10 +13,13 @@ FROM quay.io/zzlotnik/hotdogcart:latest AS hotdogcart
 
 FROM base AS final
 COPY --from=copr /etc/yum.repos.d/_copr* /etc/yum.repos.d/
-COPY --from=tools-fetcher /usr/local/bin/yq /usr/local/bin/yq
-COPY --from=hotdogcart /hotdogcart /usr/local/bin/hotdogcart
-COPY --from=tools-fetcher /usr/local/bin/bcvk /usr/local/bin/bcvk
+COPY --from=tools-fetcher /usr/local/bin/yq /usr/bin/yq
+COPY --from=hotdogcart /hotdogcart /usr/bin/hotdogcart
+COPY --from=tools-fetcher /usr/local/bin/bcvk /usr/bin/bcvk
+COPY setup-virt-manager.sh /usr/bin/setup-virt-manager
 RUN --mount=type=cache,target=/var/cache/rpm-ostree,z \
+	--mount=type=cache,target=/var/cache/libdnf5,z \
+	chmod +x /usr/bin/setup-virt-manager && \
 	rpm-ostree install -y \
 		# Needed for non-free ffmpeg packages.
 		https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm \
@@ -44,10 +47,16 @@ RUN --mount=type=cache,target=/var/cache/rpm-ostree,z \
 		skopeo \
 		starship \
 		tmux \
-		# Needed to let crun-vm work.
+		virt-manager \
 		zsh && \
 	# Not removing these files prevents the eza alias from working
 	rm /etc/profile.d/color*.csh /etc/profile.d/color*.sh && \
 	# Replace ffmpeg-free with ffmpeg from RPMFusion.
 	dnf swap -y ffmpeg-free ffmpeg --allowerasing && \
-	ostree container commit
+	# There is some additional post-installation setup that needs to be done for
+	# virt-manager to work. However, much of that takes place in /etc and /var,
+	# which we cannot preemptively do here. That is the purpose of the
+	# setup-virt-manager script above. However, we can at least enable the
+	# systemd services that virt-manager relies upon.
+	systemctl enable virtlogd virtnetworkd virtqemud virtstoraged && \
+	bootc container lint
