@@ -51,4 +51,3 @@ curl -L "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/stable/opensh
 find "$root_path" -type f -executable -exec mv {} "/usr/local/bin/" \;
 rm -rf "$root_path"
 rm /usr/local/bin/get-arch
-rm /usr/local/bin/dra
