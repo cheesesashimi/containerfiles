@@ -1,9 +1,9 @@
-ARG FEDORA_VERSION=42
+ARG FEDORA_VERSION=43
 FROM quay.io/fedora/fedora-coreos:stable AS base
 
 FROM quay.io/zzlotnik/toolbox:tools-fetcher AS tools-fetcher
 
-ARG FEDORA_VERSION=42
+ARG FEDORA_VERSION=43
 FROM quay.io/fedora/fedora-toolbox:${FEDORA_VERSION} AS copr
 RUN --mount=type=cache,target=/var/cache/,z \
 	dnf copr enable -y atim/starship && \

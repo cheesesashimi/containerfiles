@@ -8,22 +8,21 @@ requirement.
 
 These containers may be pulled from:
 
-- `quay.io/zzlotnik/toolbox:ai-base-fedora-42`
-- `quay.io/zzlotnik/toolbox:ai-base-fedora-42`
-- `quay.io/zzlotnik/toolbox:ai-minimal-fedora-42`
-- `quay.io/zzlotnik/toolbox:ai-workspace-fedora-42`
-- `quay.io/zzlotnik/toolbox:base-fedora-42`
-- `quay.io/zzlotnik/toolbox:kube-fedora-42`
-- `quay.io/zzlotnik/toolbox:mco-fedora-42`
+- `quay.io/zzlotnik/toolbox:ai-base-fedora-43`
+- `quay.io/zzlotnik/toolbox:ai-minimal-fedora-43`
+- `quay.io/zzlotnik/toolbox:ai-workspace-fedora-43`
+- `quay.io/zzlotnik/toolbox:base-fedora-43`
+- `quay.io/zzlotnik/toolbox:kube-fedora-43`
+- `quay.io/zzlotnik/toolbox:mco-fedora-43`
 - `quay.io/zzlotnik/toolbox:podman-dev-env`
-- `quay.io/zzlotnik/toolbox:workspace-fedora-42`
+- `quay.io/zzlotnik/toolbox:workspace-fedora-43`
 
 ## Usage with Toolbx
 
 If you're using Toolbx, you can use these images like this:
 
 ```console
-$ toolbox create --image quay.io/zzlotnik/toolbox:base-fedora-42 workspace
+$ toolbox create --image quay.io/zzlotnik/toolbox:base-fedora-43 workspace
 $ toolbox enter workspace
 ```
 
@@ -35,7 +34,7 @@ Bash script:
 
 set -euo
 
-image="quay.io/zzlotnik/toolbox:base-fedora-42"
+image="quay.io/zzlotnik/toolbox:base-fedora-43"
 workspace="$(whoami)-workspace"
 
 podman stop "$workspace"
@@ -51,7 +50,7 @@ such as [Podman](https://podman.io).
 
 ## Notes
 
-Containers are automatically built for Fedora 42 using the same Containerfiles.
+Containers are automatically built for Fedora 43 using the same Containerfiles.
 Here is a description of what each Containerfile is used for:
 
 - `Containerfile.base` - This contains a rather minimal set of CLI tools that I

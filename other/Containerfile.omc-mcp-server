@@ -1,13 +1,13 @@
 # This Containerfile is used to bring up an MCP (Model Context Protocol) server
 # for interfacing with omc (OpenShift Must-Gather inspector) and with Claude
 # Code, Gemini CLI and / or goose CLI.
-ARG FEDORA_VERSION=42
+ARG FEDORA_VERSION=43
 FROM docker.io/library/golang:latest AS build-mcp-server
 WORKDIR /mcp-server
 RUN git clone --depth=1 https://github.com/shivprakashmuley/mustgather-mcp-server.git . && \
   go build -o /mcp-server/mustgather-mcp-server
 
-ARG FEDORA_VERSION=42
+ARG FEDORA_VERSION=43
 FROM quay.io/fedora/fedora:${FEDORA_VERSION} AS fetch-omc
 WORKDIR /omc
 RUN --mount=type=cache,target=/var/cache/dnf,z \
@@ -16,7 +16,7 @@ RUN --mount=type=cache,target=/var/cache/dnf,z \
     curl -L "$(cat download_url.txt)" | tar zx && \
     rm download_url.txt
 
-ARG FEDORA_VERSION=42
+ARG FEDORA_VERSION=43
 FROM quay.io/zzlotnik/toolbox:ai-workspace-fedora-${FEDORA_VERSION}
 COPY --from=build-mcp-server /mcp-server/mustgather-mcp-server /usr/bin/mustgather-mcp-server
 COPY --from=fetch-omc /omc/omc /usr/bin/omc
