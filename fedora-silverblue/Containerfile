@@ -30,6 +30,8 @@ COPY setup-virt-manager.sh /usr/bin/setup-virt-manager
 RUN --mount=type=cache,target=/var/cache/rpm-ostree,z \
 	--mount=type=cache,target=/var/cache/libdnf5,z \
 	chmod +x /usr/bin/setup-virt-manager && \
+	chown -R root:root /usr/share/fonts/IBMPlexMono && \
+	chmod -R 0644 /usr/share/fonts/IBMPlexMono && \
 	rpm-ostree install -y \
 		# Needed for non-free ffmpeg packages.
 		https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm \
