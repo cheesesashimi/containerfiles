@@ -218,6 +218,12 @@ def get_fedora_images(fedora_version):
             get_toolbox_labels("workspace-rust", fedora_version),
         ),
         Image(
+            "toolbox/Containerfile.ai-helpers",
+            [f"quay.io/zzlotnik/toolbox:ai-helpers-{tag_suffix}"],
+            fedora_version_build_args,
+            get_toolbox_labels("ai-helpers", fedora_version),
+        ),
+        Image(
             "toolbox/Containerfile.ai-workspace",
             [f"quay.io/zzlotnik/toolbox:ai-workspace-{tag_suffix}"],
             fedora_version_build_args,
