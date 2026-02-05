@@ -8,9 +8,6 @@ requirement.
 
 These containers may be pulled from:
 
-- `quay.io/zzlotnik/toolbox:ai-base-fedora-43`
-- `quay.io/zzlotnik/toolbox:ai-minimal-fedora-43`
-- `quay.io/zzlotnik/toolbox:ai-workspace-fedora-43`
 - `quay.io/zzlotnik/toolbox:base-fedora-43`
 - `quay.io/zzlotnik/toolbox:kube-fedora-43`
 - `quay.io/zzlotnik/toolbox:mco-fedora-43`
@@ -58,10 +55,6 @@ Here is a description of what each Containerfile is used for:
   all of the bits that make my CLI experience better. All of the other
   containers within this directory use this as their base image, unless
   mentioned otherwise.
-- `Containerfile.ai-base` - Extends `Containerfile.base` with CLI AI tools such
-  as Claude Code, Gemini CLI, and Goose.
-- `Containerfile.ai-minimal` - A minimal Toolbox container with CLI AI tools such
-  as Claude Code, Gemini CLI, and Goose.
 - `Containerfile.workspace` - This includes my preferred editor (Neovim) and all of
   the tools and runtimes needed for my plugins to work.  It
   also includes my favorite tools for working with Kubernetes (described
