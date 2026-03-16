@@ -7,5 +7,8 @@ COPY get-arch.py /usr/local/bin/get-arch
 FROM prep AS install
 RUN /tmp/install.sh
 
+FROM quay.io/zzlotnik/zacks-openshift-helpers:latest AS helpers
+
 FROM scratch AS final
+COPY --from=helpers /usr/local/bin/rcctl /usr/local/bin/rcctl
 COPY --from=install /usr/local/bin/ /usr/local/bin/

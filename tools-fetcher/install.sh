@@ -5,7 +5,6 @@ set -xeuo
 declare -A repos=(
   ["mikefarah/yq"]="yq_linux_$(get-arch --amd64 --arm64)"
   ["ankitpokhrel/jira-cli"]="jira"
-  ["block/goose"]=""
   ["coreos/ignition"]=""
   ["coreos/butane"]=""
   ["derailed/k9s"]=""
