@@ -2,4 +2,6 @@ ARG FEDORA_VERSION=43
 FROM quay.io/zzlotnik/toolbox:base-fedora-${FEDORA_VERSION} AS base
 COPY google-cloud-sdk.repo /etc/yum.repos.d/google-cloud-sdk.repo
 RUN --mount=type=cache,target=/var/cache/dnf,z \
-    dnf install -y awscli2 google-cloud-cli
+    --mount=type=cache,target=/var/cache/libdnf5,z \
+    dnf install -y awscli2 google-cloud-cli && \
+    find / -type d -name '__pycache__' | xargs rm -rf

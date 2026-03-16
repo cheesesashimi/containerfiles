@@ -1,5 +1,6 @@
 FROM quay.io/centos/centos:stream10 AS epel
 RUN --mount=type=cache,target=/var/cache/dnf,z \
+  --mount=type=cache,target=/var/cache/libdnf5,z \
   dnf install -y --setopt=keepcache=True epel-release && \
   sed -i 's/\$stream/10-stream/g' /etc/yum.repos.d/centos*.repo && \
   sed -i 's/EPEL\-\$releasever_major/EPEL-10/g' /etc/yum.repos.d/epel*.repo && \

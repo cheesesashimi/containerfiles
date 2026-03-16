@@ -13,6 +13,7 @@ COPY --from=cluster-debug-tools /usr/local/bin/ /usr/local/bin/
 FROM base AS final
 ARG FEDORA_VERSION=${FEDORA_VERSION}
 RUN --mount=type=cache,target=/var/cache/dnf,z \
+	--mount=type=cache,target=/var/cache/libdnf5,z \
 	dnf copr enable -y atim/starship && \
 	dnf copr enable -y alternateved/eza && \
 	dnf install --setopt=keepcache=True -y \
@@ -54,6 +55,10 @@ RUN --mount=type=cache,target=/var/cache/dnf,z \
 	# within a toolbox container. TODO: Figure out how to do rootless
 	# Podman from within the container to eliminate needing to open the
 	# Podman socket.
-	ln -s /usr/bin/podman-remote /usr/bin/podman
+	ln -s /usr/bin/podman-remote /usr/bin/podman && \
+	# Clear Python and Nodejs caches to avoid image bloat
+	find / -name "__pycache__" -type d | xargs rm -rf && \
+	find / -type d -name 'node_modules/.cache' | xargs rm -rf
+
 COPY --from=tools /usr/local/bin/ /usr/local/bin/
 

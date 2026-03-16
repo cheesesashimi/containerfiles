@@ -22,7 +22,9 @@ RUN git clone --depth=1 https://github.com/openshift-eng/ai-helpers.git /opt/ai-
   cp /opt/ai-helpers/images/claude-settings.json /home/claude/.claude/settings.json && \
   cp /opt/ai-helpers/images/known_marketplaces.json /home/claude/.claude/plugins/known_marketplaces.json && \
   chown -R claude:root /home/claude && \
-  mkdir -p /workspace && chown -R claude:root /workspace
+  mkdir -p /workspace && chown -R claude:root /workspace && \
+  find / -type d -name '__pycache__' | xargs rm -rf && \
+  find / -type d -name 'node_modules/.cache' | xargs rm -rf
 
 WORKDIR /workspace
 
@@ -32,7 +34,10 @@ USER claude
 RUN curl -fsSL https://claude.ai/install.sh | bash && \
   chmod -R g+rwx /home/claude && \
   chmod -R g+rwx /opt/ai-helpers && \
-  chmod -R g+rwx /workspace
+  chmod -R g+rwx /workspace && \
+  rm -rf /tmp/node-compile-cache && \
+  find /home/claude -type d -name 'node_modules/.cache' | xargs rm -rf && \
+  find /home/claude -type d -name '__pycache__' | xargs rm -rf
 
 # Ensure ~/.local/bin is in PATH for the entrypoint
 ENV PATH="/home/claude/.local/bin:${PATH}"

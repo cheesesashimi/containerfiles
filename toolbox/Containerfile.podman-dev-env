@@ -1,5 +1,6 @@
 FROM quay.io/zzlotnik/toolbox:base-fedora-43
 RUN --mount=type=cache,target=/var/cache/dnf,z \
+  --mount=type=cache,target=/var/cache/libdnf5,z \
   dnf install -y --setopt=keepcache=True \
     bats \
     btrfs-progs-devel \
@@ -50,4 +51,5 @@ RUN --mount=type=cache,target=/var/cache/dnf,z \
     xz \
     zip \
     zsh && \
-  ln -s /usr/libexec/virtiofsd /usr/local/bin/virtiofsd
+  ln -s /usr/libexec/virtiofsd /usr/local/bin/virtiofsd && \
+	find / -name "__pycache__" -type d | xargs rm -rf

@@ -1,4 +1,6 @@
 ARG FEDORA_VERSION=43
 FROM quay.io/zzlotnik/toolbox:workspace-fedora-${FEDORA_VERSION} AS base
 RUN --mount=type=cache,target=/var/cache/dnf,z \
-  dnf install -y cargo rust-analyzer
+  --mount=type=cache,target=/var/cache/libdnf5,z \
+  dnf install -y cargo rust-analyzer && \
+	find / -name "__pycache__" -type d | xargs rm -rf
