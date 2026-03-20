@@ -6,6 +6,8 @@
 
 FROM quay.io/zzlotnik/toolbox:workspace-fedora-43
 
+COPY install-plugins.py plugins.yaml /opt/plugins
+
 RUN git clone --depth=1 https://github.com/openshift-eng/ai-helpers.git /opt/ai-helpers && \
   dnf install -y \
     python3 \
@@ -17,31 +19,37 @@ RUN git clone --depth=1 https://github.com/openshift-eng/ai-helpers.git /opt/ai-
     requests \
     pyyaml && \
   useradd -m -u 1000 -g 0 -s /bin/bash claude && \
+  chown -R claude:root /opt/plugins && \
+  chmod +x /opt/plugins/install-plugins.py && \
   chown -R claude:root /opt/ai-helpers && \
   mkdir -p /home/claude/.claude/plugins && \
-  cp /opt/ai-helpers/images/claude-settings.json /home/claude/.claude/settings.json && \
-  cp /opt/ai-helpers/images/known_marketplaces.json /home/claude/.claude/plugins/known_marketplaces.json && \
   chown -R claude:root /home/claude && \
+  mkdir -p /home/claude/.config && \
+  chown -R claude:root /home/claude/.config && \
   mkdir -p /workspace && chown -R claude:root /workspace && \
   find / -type d -name '__pycache__' | xargs rm -rf && \
   find / -type d -name 'node_modules/.cache' | xargs rm -rf
 
-WORKDIR /workspace
-
 USER claude
+
+WORKDIR /opt/plugins
 
 # Install Claude Code CLI using the official installation script
 RUN curl -fsSL https://claude.ai/install.sh | bash && \
+  /opt/plugins/install-plugins.py && \
   chmod -R g+rwx /home/claude && \
   chmod -R g+rwx /opt/ai-helpers && \
   chmod -R g+rwx /workspace && \
   rm -rf /tmp/node-compile-cache && \
+  rm -rf /home/claude/.claude/backups && \
   find /home/claude -type d -name 'node_modules/.cache' | xargs rm -rf && \
   find /home/claude -type d -name '__pycache__' | xargs rm -rf
 
 # Ensure ~/.local/bin is in PATH for the entrypoint
 ENV PATH="/home/claude/.local/bin:${PATH}"
 ENV CLAUDE_CONFIG_DIR="/home/claude/.claude"
+
+WORKDIR /workspace
 
 # Set Claude Code as the default command
 ENTRYPOINT ["claude"]

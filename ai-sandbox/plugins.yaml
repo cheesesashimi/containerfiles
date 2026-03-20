@@ -1,0 +1,10 @@
+---
+claude_plugins:
+  - marketplace: /opt/ai-helpers
+    plugins:
+    - "ci@ai-helpers"
+    - "hello-world@ai-helpers"
+    - "jira@ai-helpers"
+  - marketplace: anthropics/claude-plugins-official
+    plugins:
+    - "gopls-lsp@claude-plugins-official"

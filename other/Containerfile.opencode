@@ -1,0 +1,46 @@
+# Written (mostly) by Google Gemini.
+
+# Use my toolbox base image.
+FROM quay.io/zzlotnik/toolbox:ai-helpers-fedora-43
+
+USER root
+
+# Prevent Python from writing .pyc files and ensure unbuffered logging
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+ENV HOME=/home/opencode
+
+# Install system dependencies
+# We use dnf clean all to keep the system layer slim
+RUN dnf -y update && \
+    dnf -y install \
+    curl \
+    tar \
+    python3 \
+    python3-pip \
+    python3-devel \
+    nodejs \
+    npm \
+    gcc \
+    gcc-c++ \
+    make && \
+    dnf clean all && \
+    find / -type d -name '__pycache__' | xargs rm -rf && \
+    find / -type d -name 'node_modules/.cache' | xargs rm -rf
+
+USER claude
+
+WORKDIR $HOME
+
+# 1. Use curl to download the source instead of git clone
+# Adjust the URL if you are targeting a specific version/release tag
+RUN curl -fsSL https://opencode.ai/install | bash && \
+    npm cache clean --force && \
+    find /home/claude -type d -name '__pycache__' | xargs rm -rf && \
+    find /home/claude -type d -name 'node_modules/.cache' | xargs rm -rf
+
+# Expose application ports
+EXPOSE 8000
+EXPOSE 3000
+
+CMD ["python3", "main.py"]
