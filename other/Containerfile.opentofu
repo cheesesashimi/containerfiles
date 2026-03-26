@@ -1,0 +1,9 @@
+FROM fedora:latest
+RUN curl --tlsv1.2 -fsSL https://get.opentofu.org/install-opentofu.sh -o install-opentofu.sh && \
+  chmod +x install-opentofu.sh && \
+  ./install-opentofu.sh --install-method rpm && \
+  rm -f install-opentofu.sh && \
+  dnf clean all && \
+  useradd -m -s /bin/bash opentofu
+USER opentofu
+WORKDIR $HOME
