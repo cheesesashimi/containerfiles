@@ -3,6 +3,7 @@ RUN --mount=type=cache,target=/var/cache/dnf,z \
   --mount=type=cache,target=/var/cache/libdnf5,z \
   dnf install -y --setopt=keepcache=True \
     bats \
+    bcvk \
     btrfs-progs-devel \
     bzip2 \
     catatonit \
@@ -52,4 +53,4 @@ RUN --mount=type=cache,target=/var/cache/dnf,z \
     zip \
     zsh && \
   ln -s /usr/libexec/virtiofsd /usr/local/bin/virtiofsd && \
-	find / -name "__pycache__" -type d | xargs rm -rf
+  find / -name "__pycache__" -type d | xargs rm -rf

@@ -19,12 +19,10 @@ RUN dra download -s "IBMPlexMono.tar.xz" ryanoasis/nerd-fonts && \
 
 FROM quay.io/zzlotnik/hotdogcart:latest AS hotdogcart
 
-
 FROM base AS final
 COPY --from=copr /etc/yum.repos.d/_copr* /etc/yum.repos.d/
 COPY --from=tools-fetcher /usr/local/bin/yq /usr/bin/yq
 COPY --from=hotdogcart /hotdogcart /usr/bin/hotdogcart
-COPY --from=tools-fetcher /usr/local/bin/bcvk /usr/bin/bcvk
 COPY --from=font-fetcher /usr/share/fonts/IBMPlexMono /usr/share/fonts/IBMPlexMono
 COPY setup-virt-manager.sh /usr/bin/setup-virt-manager
 RUN --mount=type=cache,target=/var/cache/rpm-ostree,z \
