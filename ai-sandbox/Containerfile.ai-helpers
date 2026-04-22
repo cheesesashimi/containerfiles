@@ -38,6 +38,7 @@ WORKDIR /opt/plugins
 
 # Install Claude Code CLI using the official installation script
 RUN curl -fsSL https://claude.ai/install.sh | bash && \
+  curl -fsSL https://opencode.ai/install | bash && \
   /opt/plugins/install-plugins.py && \
   chmod -R g+rwx /home/claude && \
   chmod -R g+rwx /opt/ai-helpers && \
