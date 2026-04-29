@@ -1,15 +1,14 @@
-ARG FEDORA_VERSION=43
+ARG FEDORA_VERSION=44
 FROM quay.io/fedora/fedora-silverblue:${FEDORA_VERSION} AS base
 
-ARG FEDORA_VERSION=43
+ARG FEDORA_VERSION=44
 FROM quay.io/fedora/fedora-toolbox:${FEDORA_VERSION} AS copr
 RUN --mount=type=cache,target=/var/cache/,z \
-	dnf copr enable -y atim/starship && \
-	dnf copr enable -y alternateved/eza
+	dnf copr enable -y atim/starship
 
 FROM quay.io/zzlotnik/toolbox:tools-fetcher AS tools-fetcher
 
-ARG FEDORA_VERSION=43
+ARG FEDORA_VERSION=44
 FROM quay.io/fedora/fedora:${FEDORA_VERSION} AS font-fetcher
 COPY --from=tools-fetcher /usr/local/bin/dra /usr/local/bin/dra
 WORKDIR /usr/share/fonts/IBMPlexMono

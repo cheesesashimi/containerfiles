@@ -1,7 +1,7 @@
 # Written (mostly) by Google Gemini.
 
 # Use my toolbox base image.
-FROM quay.io/zzlotnik/toolbox:ai-helpers-fedora-43
+FROM quay.io/zzlotnik/toolbox:ai-helpers-fedora-44
 
 USER root
 

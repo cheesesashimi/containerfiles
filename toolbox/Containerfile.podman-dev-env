@@ -1,4 +1,4 @@
-FROM quay.io/zzlotnik/toolbox:base-fedora-43
+FROM quay.io/zzlotnik/toolbox:base-fedora-44
 RUN --mount=type=cache,target=/var/cache/dnf,z \
   --mount=type=cache,target=/var/cache/libdnf5,z \
   dnf install -y --setopt=keepcache=True \

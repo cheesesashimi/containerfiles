@@ -4,7 +4,7 @@
 # 2. It clones that repo as opposed to copying it from local storage and it
 # 3. I've consolidated the individual layers to be more space-efficient.
 
-FROM quay.io/zzlotnik/toolbox:workspace-fedora-43
+FROM quay.io/zzlotnik/toolbox:workspace-fedora-44
 
 COPY install-plugins.py plugins.yaml /opt/plugins
 

@@ -274,7 +274,7 @@ def main(args):
 
     image_batches = [
         standalone_images,
-        get_fedora_images("43"),
+        get_fedora_images("44"),
     ]
 
     for image_batch in image_batches:
