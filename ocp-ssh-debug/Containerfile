@@ -1,8 +1,5 @@
-FROM quay.io/zzlotnik/toolbox:tools-fetcher AS tools-fetcher
-
 FROM quay.io/fedora/fedora:44 AS final
 RUN --mount=type=cache,target=/var/cache/dnf,z \
 	--mount=type=cache,target=/var/cache/libdnf5,z \
-	dnf install -y --setopt=keepcache=True openssh-clients && \
+	dnf install -y --setopt=keepcache=True openssh-clients yq && \
 	find / -type d -name '__pycache__' | xargs rm -rf
-COPY --from=tools-fetcher /usr/local/bin/yq /usr/local/bin/yq
