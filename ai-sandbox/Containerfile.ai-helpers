@@ -13,7 +13,9 @@ FROM quay.io/fedora/fedora-toolbox:${FEDORA_VERSION} AS final
 COPY install-plugins.py plugins.yaml /opt/plugins
 COPY --from=tools-fetcher /usr/local/bin /usr/local/bin
 
-RUN git clone --depth=1 https://github.com/openshift-eng/ai-helpers.git /opt/ai-helpers && \
+RUN --mount=type=cache,target=/var/cache/dnf,z \
+	--mount=type=cache,target=/var/cache/libdnf5,z \
+  git clone --depth=1 https://github.com/openshift-eng/ai-helpers.git /opt/ai-helpers && \
   dnf install -y \
     buildah \
     cargo \
@@ -41,7 +43,6 @@ RUN git clone --depth=1 https://github.com/openshift-eng/ai-helpers.git /opt/ai-
     skopeo \
     tmux \
     yq && \
-  dnf clean all && \
   pip3 install --no-cache-dir \
     pytest \
     requests \
