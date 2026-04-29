@@ -4,15 +4,43 @@
 # 2. It clones that repo as opposed to copying it from local storage and it
 # 3. I've consolidated the individual layers to be more space-efficient.
 
-FROM quay.io/zzlotnik/toolbox:workspace-fedora-44
+ARG FEDORA_VERSION=44
+
+FROM quay.io/zzlotnik/toolbox:tools-fetcher AS tools-fetcher
+
+FROM quay.io/fedora/fedora-toolbox:${FEDORA_VERSION} AS final
 
 COPY install-plugins.py plugins.yaml /opt/plugins
+COPY --from=tools-fetcher /usr/local/bin /usr/local/bin
 
 RUN git clone --depth=1 https://github.com/openshift-eng/ai-helpers.git /opt/ai-helpers && \
   dnf install -y \
+    buildah \
+    cargo \
+    curl \
+    delve \
+    fd-find \
+    fzf \
+    gh \
+    git \
+    git-delta \
+    golang \
+    golang-x-tools-goimports \
+    golang-x-tools-gopls \
+    hadolint \
+    jq \
+    nodejs \
+    podman \
     python3 \
+    python3-devel \
+    python3-lsp-server \
     python3-pip \
-    python3-devel && \
+    ripgrep \
+    rust-analyzer \
+    shellcheck \
+    skopeo \
+    tmux \
+    yq && \
   dnf clean all && \
   pip3 install --no-cache-dir \
     pytest \
