@@ -22,6 +22,7 @@ RUN --mount=type=cache,target=/var/cache/dnf,z \
     curl \
     delve \
     fd-find \
+    fuse-overlayfs \
     fzf \
     gh \
     git \
@@ -49,6 +50,9 @@ RUN --mount=type=cache,target=/var/cache/dnf,z \
     pyyaml && \
   npm install -g dmux && \
   useradd -m -u 1000 -g 0 -s /bin/bash claude && \
+  echo -e "claude:1001:65536" > /etc/subuid && \
+  echo -e "claude:1001:65536" > /etc/subgid && \
+  chmod u+s /usr/bin/newuidmap /usr/bin/newgidmap && \
   chown -R claude:root /opt/plugins && \
   chmod +x /opt/plugins/install-plugins.py && \
   chown -R claude:root /opt/ai-helpers && \
@@ -56,17 +60,36 @@ RUN --mount=type=cache,target=/var/cache/dnf,z \
   chown -R claude:root /home/claude && \
   mkdir -p /home/claude/.config && \
   chown -R claude:root /home/claude/.config && \
+  mkdir -p /home/claude/.local/share/containers && \
+  chown -R claude:root /home/claude/.local && \
   mkdir -p /workspace && chown -R claude:root /workspace && \
   find / -type d -name '__pycache__' | xargs rm -rf && \
   find / -type d -name 'node_modules/.cache' | xargs rm -rf && \
   rm -rf /tmp/node-compile-cache
+
+VOLUME /var/lib/containers
+VOLUME /home/claude/.local/share/containers
+
+RUN mkdir -p /var/lib/shared/overlay-images \
+  /var/lib/shared/overlay-layers \
+  /var/lib/shared/vfs-images \
+  /var/lib/shared/vfs-layers && \
+  touch /var/lib/shared/overlay-images/images.lock && \
+  touch /var/lib/shared/overlay-layers/layers.lock && \
+  touch /var/lib/shared/vfs-images/images.lock && \
+  touch /var/lib/shared/vfs-layers/layers.lock
 
 USER claude
 
 WORKDIR /opt/plugins
 
 # Install Claude Code CLI using the official installation script
-RUN curl -fsSL https://claude.ai/install.sh | bash && \
+RUN mkdir -p /home/claude/.config/containers && \
+  printf '[storage]\ndriver = "overlay"\n\n[storage.options.overlay]\nmount_program = "/usr/bin/fuse-overlayfs"\n' \
+    > /home/claude/.config/containers/storage.conf && \
+  printf '[containers]\nnetns = "host"\n\n[engine]\ncgroup_manager = "cgroupfs"\nevents_logger = "file"\n' \
+    > /home/claude/.config/containers/containers.conf && \
+  curl -fsSL https://claude.ai/install.sh | bash && \
   curl -fsSL https://opencode.ai/install | bash && \
   /opt/plugins/install-plugins.py && \
   chmod -R g+rwx /home/claude && \
@@ -81,6 +104,8 @@ RUN curl -fsSL https://claude.ai/install.sh | bash && \
 # Ensure ~/.local/bin is in PATH for the entrypoint
 ENV PATH="/home/claude/.local/bin:${PATH}"
 ENV CLAUDE_CONFIG_DIR="/home/claude/.claude"
+ENV _CONTAINERS_USERNS_CONFIGURED=""
+ENV BUILDAH_ISOLATION=rootless
 
 WORKDIR /workspace
 
