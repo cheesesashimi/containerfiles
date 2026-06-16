@@ -44,6 +44,11 @@ RUN --mount=type=cache,target=/var/cache/dnf,z \
     skopeo \
     tmux \
     yq && \
+  curl -sL https://api.github.com/repos/rtk-ai/rtk/releases/latest | \
+    jq -r '.assets[] | select(.name | test("^rtk-[0-9].*\\.rpm$")) | .browser_download_url' | \
+    xargs curl -sL -o /tmp/rtk.rpm && \
+  dnf install -y /tmp/rtk.rpm && \
+  rm -f /tmp/rtk.rpm && \
   pip3 install --no-cache-dir \
     pytest \
     requests \
@@ -91,6 +96,7 @@ RUN mkdir -p /home/claude/.config/containers && \
     > /home/claude/.config/containers/containers.conf && \
   curl -fsSL https://claude.ai/install.sh | bash && \
   curl -fsSL https://opencode.ai/install | bash && \
+  rtk init -g --auto-patch && \
   /opt/plugins/install-plugins.py && \
   chmod -R g+rwx /home/claude && \
   chmod -R g+rwx /opt/ai-helpers && \
