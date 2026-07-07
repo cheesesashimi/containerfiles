@@ -30,6 +30,7 @@ RUN --mount=type=cache,target=/var/cache/dnf,z \
     golang \
     golang-x-tools-goimports \
     golang-x-tools-gopls \
+    gpgme-devel \
     hadolint \
     jq \
     nodejs \
@@ -53,7 +54,8 @@ RUN --mount=type=cache,target=/var/cache/dnf,z \
     pytest \
     requests \
     pyyaml && \
-  npm install -g dmux && \
+  npm install -g dmux skills && \
+  npm install -g @googleworkspace/cli && \
   useradd -m -u 1000 -g 0 -s /bin/bash claude && \
   echo -e "claude:1001:65536" > /etc/subuid && \
   echo -e "claude:1001:65536" > /etc/subgid && \
@@ -103,6 +105,7 @@ RUN mkdir -p /home/claude/.config/containers && \
   chmod -R g+rwx /workspace && \
   rm -rf /tmp/node-compile-cache && \
   rm -rf /home/claude/.claude/backups && \
+  npx skills add -g -y https://github.com/googleworkspace/cli && \
   find / -type d -name '__pycache__' | xargs rm -rf && \
   find / -type d -name 'node_modules/.cache' | xargs rm -rf && \
   rm -rf /tmp/node-compile-cache
