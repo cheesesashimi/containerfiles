@@ -10,116 +10,118 @@ FROM quay.io/zzlotnik/toolbox:tools-fetcher AS tools-fetcher
 
 FROM quay.io/fedora/fedora-toolbox:${FEDORA_VERSION} AS final
 
-COPY install-plugins.py plugins.yaml /opt/plugins
 COPY --from=tools-fetcher /usr/local/bin /usr/local/bin
-
+COPY claude-code.repo /etc/yum.repos.d/
+COPY ai-sandbox-entrypoint.sh /usr/local/bin/ai-sandbox-entrypoint.sh
+COPY generate-apm-yml.py /usr/local/bin/generate-apm-yml.py
 RUN --mount=type=cache,target=/var/cache/dnf,z \
-	--mount=type=cache,target=/var/cache/libdnf5,z \
-  git clone --depth=1 https://github.com/openshift-eng/ai-helpers.git /opt/ai-helpers && \
-  dnf install -y \
-    buildah \
-    cargo \
-    curl \
-    delve \
-    fd-find \
-    fuse-overlayfs \
-    fzf \
-    gh \
-    git \
-    git-delta \
-    golang \
-    golang-x-tools-goimports \
-    golang-x-tools-gopls \
-    gpgme-devel \
-    hadolint \
-    jq \
-    nodejs \
-    podman \
-    python3 \
-    python3-devel \
-    python3-lsp-server \
-    python3-pip \
-    ripgrep \
-    rust-analyzer \
-    shellcheck \
-    skopeo \
-    tmux \
-    yq && \
-  curl -sL https://api.github.com/repos/rtk-ai/rtk/releases/latest | \
-    jq -r '.assets[] | select(.name | test("^rtk-[0-9].*\\.rpm$")) | .browser_download_url' | \
-    xargs curl -sL -o /tmp/rtk.rpm && \
-  dnf install -y /tmp/rtk.rpm && \
-  rm -f /tmp/rtk.rpm && \
-  pip3 install --no-cache-dir \
-    pytest \
-    requests \
-    pyyaml && \
-  npm install -g dmux skills && \
-  npm install -g @googleworkspace/cli && \
-  useradd -m -u 1000 -g 0 -s /bin/bash claude && \
-  echo -e "claude:1001:65536" > /etc/subuid && \
-  echo -e "claude:1001:65536" > /etc/subgid && \
-  chmod u+s /usr/bin/newuidmap /usr/bin/newgidmap && \
-  chown -R claude:root /opt/plugins && \
-  chmod +x /opt/plugins/install-plugins.py && \
-  chown -R claude:root /opt/ai-helpers && \
-  mkdir -p /home/claude/.claude/plugins && \
-  chown -R claude:root /home/claude && \
-  mkdir -p /home/claude/.config && \
-  chown -R claude:root /home/claude/.config && \
-  mkdir -p /home/claude/.local/share/containers && \
-  chown -R claude:root /home/claude/.local && \
-  mkdir -p /workspace && chown -R claude:root /workspace && \
-  find / -type d -name '__pycache__' | xargs rm -rf && \
-  find / -type d -name 'node_modules/.cache' | xargs rm -rf && \
-  rm -rf /tmp/node-compile-cache
+    --mount=type=cache,target=/var/cache/libdnf5,z \
+    dnf install -y \
+        buildah \
+        cargo \
+        claude-code \
+        curl \
+        delve \
+        fd-find \
+        fuse-overlayfs \
+        fzf \
+        gh \
+        git \
+        git-delta \
+        golang \
+        golang-x-tools-goimports \
+        golang-x-tools-gopls \
+        gpgme-devel \
+        hadolint \
+        jq \
+        nodejs \
+        podman \
+        python3 \
+        python3-devel \
+        python3-lsp-server \
+        python3-pip \
+        ripgrep \
+        rust-analyzer \
+        shellcheck \
+        skopeo \
+        tmux \
+        yq && \
+    curl -fsSL https://github.com/rtk-ai/rtk/releases/latest/download/rtk.x86_64.rpm \
+        -o /tmp/rtk.rpm && \
+    dnf install -y /tmp/rtk.rpm && \
+    rm -f /tmp/rtk.rpm && \
+    pip3 install --no-cache-dir \
+        pytest \
+        requests \
+        pyyaml && \
+    npm install -g dmux && \
+    npm install -g @googleworkspace/cli && \
+    curl -sSL https://aka.ms/apm-unix | sh && \
+    useradd -m -u 1000 -g 0 -s /bin/bash claude && \
+    echo -e "claude:1001:65536" > /etc/subuid && \
+    echo -e "claude:1001:65536" > /etc/subgid && \
+    chmod u+s /usr/bin/newuidmap /usr/bin/newgidmap && \
+    mkdir -p /home/claude/.claude/plugins && \
+    chown -R claude:root /home/claude && \
+    mkdir -p /home/claude/.config && \
+    chown -R claude:root /home/claude/.config && \
+    mkdir -p /home/claude/.local/share/containers && \
+    chown -R claude:root /home/claude/.local && \
+    mkdir -p /workspace && chown -R claude:root /workspace && \
+    find / -type d -name '__pycache__' | xargs rm -rf && \
+    find / -type d -name 'node_modules/.cache' | xargs rm -rf && \
+    rm -rf /tmp/node-compile-cache
 
 VOLUME /var/lib/containers
 VOLUME /home/claude/.local/share/containers
 
 RUN mkdir -p /var/lib/shared/overlay-images \
-  /var/lib/shared/overlay-layers \
-  /var/lib/shared/vfs-images \
-  /var/lib/shared/vfs-layers && \
-  touch /var/lib/shared/overlay-images/images.lock && \
-  touch /var/lib/shared/overlay-layers/layers.lock && \
-  touch /var/lib/shared/vfs-images/images.lock && \
-  touch /var/lib/shared/vfs-layers/layers.lock
+        /var/lib/shared/overlay-layers \
+        /var/lib/shared/vfs-images \
+        /var/lib/shared/vfs-layers && \
+    touch /var/lib/shared/overlay-images/images.lock && \
+    touch /var/lib/shared/overlay-layers/layers.lock && \
+    touch /var/lib/shared/vfs-images/images.lock && \
+    touch /var/lib/shared/vfs-layers/layers.lock
 
 USER claude
 
-WORKDIR /opt/plugins
+WORKDIR /home/claude
 
-# Install Claude Code CLI using the official installation script
+# Install OpenCode and initialize RTK
 RUN mkdir -p /home/claude/.config/containers && \
-  printf '[storage]\ndriver = "overlay"\n\n[storage.options.overlay]\nmount_program = "/usr/bin/fuse-overlayfs"\n' \
-    > /home/claude/.config/containers/storage.conf && \
-  printf '[containers]\nnetns = "host"\n\n[engine]\ncgroup_manager = "cgroupfs"\nevents_logger = "file"\n' \
-    > /home/claude/.config/containers/containers.conf && \
-  curl -fsSL https://claude.ai/install.sh | bash && \
-  curl -fsSL https://opencode.ai/install | bash && \
-  rtk init -g --auto-patch && \
-  /opt/plugins/install-plugins.py && \
-  chmod -R g+rwx /home/claude && \
-  chmod -R g+rwx /opt/ai-helpers && \
-  chmod -R g+rwx /workspace && \
-  rm -rf /tmp/node-compile-cache && \
-  rm -rf /home/claude/.claude/backups && \
-  npx skills add -g -y https://github.com/googleworkspace/cli && \
-  find / -type d -name '__pycache__' | xargs rm -rf && \
-  find / -type d -name 'node_modules/.cache' | xargs rm -rf && \
-  rm -rf /tmp/node-compile-cache
+    printf '[storage]\ndriver = "overlay"\n\n[storage.options.overlay]\nmount_program = "/usr/bin/fuse-overlayfs"\n' \
+        > /home/claude/.config/containers/storage.conf && \
+    printf '[containers]\nnetns = "host"\n\n[engine]\ncgroup_manager = "cgroupfs"\nevents_logger = "file"\n' \
+        > /home/claude/.config/containers/containers.conf && \
+    curl -fsSL https://opencode.ai/install | bash && \
+    rtk init -g --auto-patch && \
+    rtk init -g --auto-patch --opencode && \
+    chmod -R g+rwx /home/claude && \
+    chmod -R g+rwx /workspace
+
+# Clone skill repos, generate apm.yml, install via APM, then discard the clones
+RUN git clone --depth=1 https://github.com/openshift-eng/ai-helpers.git /home/claude/ai-helpers && \
+    git clone --depth=1 https://github.com/googleworkspace/cli.git /home/claude/googleworkspace-cli && \
+    python3 /usr/local/bin/generate-apm-yml.py \
+        --root /home/claude/googleworkspace-cli \
+        --root /home/claude/ai-helpers \
+        --output /home/claude/apm.yml && \
+    (cd /home/claude && apm install --target claude,opencode --root /home/claude) && \
+    rm -rf /home/claude/ai-helpers /home/claude/googleworkspace-cli \
+           /home/claude/apm.yml /home/claude/apm_modules /home/claude/apm.lock.yaml && \
+    rm -rf /tmp/node-compile-cache && \
+    rm -rf /home/claude/.claude/backups && \
+    find / -type d -name '__pycache__' | xargs rm -rf && \
+    find / -type d -name 'node_modules/.cache' | xargs rm -rf && \
+    rm -rf /tmp/node-compile-cache
 
 # Ensure ~/.local/bin is in PATH for the entrypoint
-ENV PATH="/home/claude/.local/bin:${PATH}"
+ENV PATH="/home/claude/.local/bin:/home/claude/.opencode/bin:${PATH}"
 ENV CLAUDE_CONFIG_DIR="/home/claude/.claude"
 ENV _CONTAINERS_USERNS_CONFIGURED=""
 ENV BUILDAH_ISOLATION=rootless
 
 WORKDIR /workspace
 
-# Set Claude Code as the default command
-ENTRYPOINT ["claude"]
-
-# Default to showing help
-CMD ["--help"]
+ENTRYPOINT ["/usr/local/bin/ai-sandbox-entrypoint.sh"]
