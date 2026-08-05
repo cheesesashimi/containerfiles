@@ -68,7 +68,7 @@ class Image:
         for var, label in conditional_labels.items():
             value = os.getenv(var)
             if value:
-                conditional_labels_to_add[label] = var
+                conditional_labels_to_add[label] = value
 
         if len(conditional_labels_to_add) > 0:
             self.labels.update(conditional_labels_to_add)
