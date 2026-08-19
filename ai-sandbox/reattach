@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+
+# 1. Verify tmux is installed
+if ! command -v tmux &>/dev/null; then
+  echo "tmux is not installed or not in PATH."
+  exit 1
+fi
+
+# 2. Prevent nesting if already inside a tmux session
+if [ -n "$TMUX" ]; then
+  echo "Already inside a tmux session."
+  exit 0
+fi
+
+# 3. Check for running sessions
+if tmux has-session 2>/dev/null; then
+  FIRST=$(tmux list-sessions -F "#{session_name}" 2>/dev/null | head -n 1)
+
+  if [ -n "$FIRST" ]; then
+    echo "Reattaching to session: $FIRST"
+    exec tmux attach-session -t "$FIRST"
+  else
+    echo "Active sessions found, but none have custom names."
+  fi
+else
+  echo "No active tmux server or sessions found."
+fi

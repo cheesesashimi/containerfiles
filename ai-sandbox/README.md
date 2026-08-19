@@ -14,4 +14,9 @@ This image may be pulled from `quay.io/zzlotnik/toolbox:ai-helpers-fedora-44` us
 
 ## Using the image
 
-My typical use-case for this image includes using nested Podman from within. Consequently, I have to start the image with more elevated permissions than I would reasonably like to. However, your use-case may be that this is not required. To start the image, I use [this script](https://github.com/cheesesashimi/oc-oneliners/blob/main/enter-ai-sandbox.sh) which also creates a tmux session within the container so that one can detach and reattach easily. Feel free to use and modify this script for your use-case.
+My typical use-case for this image includes using nested Podman from within. Consequently, I have to start the image with more elevated permissions than I would reasonably like to, although your use-case might not require this. I also have a bunch of config contained in various parts of my homedir that I want to surgically mount into it. To start the image, I use [this script](https://github.com/cheesesashimi/oc-oneliners/blob/main/enter-ai-sandbox.py) which creates a tmux session within the container so that one can detach and reattach easily. Feel free to use and modify this script for your use-case.
+
+If you've detached from the tmux session, resuming is fairly straightforward:
+
+1. Run `podman ps` and identify the running container you wish to reattach to.
+2. Run `podman exec -it <container name> reattach`.

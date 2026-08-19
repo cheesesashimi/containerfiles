@@ -14,6 +14,7 @@ COPY --from=tools-fetcher /usr/local/bin /usr/local/bin
 COPY claude-code.repo /etc/yum.repos.d/
 COPY ai-sandbox-entrypoint.sh /usr/local/bin/ai-sandbox-entrypoint.sh
 COPY generate-apm-yml.py /usr/local/bin/generate-apm-yml.py
+COPY reattach /usr/local/bin/reattach
 RUN --mount=type=cache,target=/var/cache/dnf,z \
     --mount=type=cache,target=/var/cache/libdnf5,z \
     dnf install -y \

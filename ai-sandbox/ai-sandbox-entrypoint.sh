@@ -16,47 +16,31 @@ fi
 
 SESSION_NAME="$1"
 
+# WITH_SKILLS is set by enter-ai-sandbox.py. When false (the default), remove
+# all built-in SKILL.md files so the AI only sees project-local skills.
+WITH_SKILLS="${WITH_SKILLS:-false}"
+if [[ "$WITH_SKILLS" != "true" ]]; then
+  find /home/claude -name "SKILL.md" -delete
+fi
+
 # AI_TOOL is set by enter-ai-sandbox.sh; default to opencode if unset.
 AI_TOOL="${AI_TOOL:-opencode}"
 
 case "$AI_TOOL" in
-  claude)
-    # Start tmux session running Claude
-    tmux new-session -d -s "$SESSION_NAME" 'claude'
+claude)
+  # Start tmux session running Claude
+  tmux new-session -d -s "$SESSION_NAME" 'claude'
+  ;;
 
-    if [[ -n "${JIRA_MCP_SERVER:-}" ]]; then
-      claude mcp add --transport sse jira http://127.0.0.1:8080/sse
-    fi
+opencode)
+  # Start tmux session running OpenCode (-u enables UTF-8)
+  tmux -u new-session -d -s "$SESSION_NAME" 'opencode'
+  ;;
 
-    mkdir -p /home/claude/.config/claude-code
-    bash -c 'jq -n \
-      --arg url "$JIRA_URL" \
-      --arg user "$JIRA_USER" \
-      --arg token "$JIRA_TOKEN" \
-      "{
-        mcpServers: {
-          atlassian: {
-            command: \"npx\",
-            args: [\"mcp-atlassian\"],
-            env: {
-              JIRA_URL: \$url,
-              JIRA_USERNAME: \$user,
-              JIRA_API_TOKEN: \$token
-            }
-          }
-        }
-      }" > /home/claude/.config/claude-code/mcp.json'
-    ;;
-
-  opencode)
-    # Start tmux session running OpenCode (-u enables UTF-8)
-    tmux -u new-session -d -s "$SESSION_NAME" 'opencode'
-    ;;
-
-  *)
-    echo "Unknown AI_TOOL value: '$AI_TOOL'. Must be 'claude' or 'opencode'." >&2
-    exit 1
-    ;;
+*)
+  echo "Unknown AI_TOOL value: '$AI_TOOL'. Must be 'claude' or 'opencode'." >&2
+  exit 1
+  ;;
 esac
 
 # After detaching or session ends, poll until session no longer exists
