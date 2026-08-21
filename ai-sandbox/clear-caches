@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+echo "Clearing Python and Node caches..."
+
+find / -type d -name '__pycache__' | xargs rm -rf -v
+find / -type d -name 'node_modules/.cache' | xargs rm -rf -v
+rm -rf -v /tmp/node-compile-cache

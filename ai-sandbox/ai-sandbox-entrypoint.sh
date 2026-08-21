@@ -20,6 +20,7 @@ SESSION_NAME="$1"
 # all built-in SKILL.md files so the AI only sees project-local skills.
 WITH_SKILLS="${WITH_SKILLS:-false}"
 if [[ "$WITH_SKILLS" != "true" ]]; then
+  find /home/claude/.agents /home/claude/.claude -name "*.md" -delete
   find /home/claude -name "SKILL.md" -delete
 fi
 
@@ -27,6 +28,11 @@ fi
 AI_TOOL="${AI_TOOL:-opencode}"
 
 case "$AI_TOOL" in
+codex)
+  # Start tmux session running Codex
+  tmux new-session -d -s "$SESSION_NAME" 'codex'
+  ;;
+
 claude)
   # Start tmux session running Claude
   tmux new-session -d -s "$SESSION_NAME" 'claude'
@@ -38,7 +44,7 @@ opencode)
   ;;
 
 *)
-  echo "Unknown AI_TOOL value: '$AI_TOOL'. Must be 'claude' or 'opencode'." >&2
+  echo "Unknown AI_TOOL value: '$AI_TOOL'. Must be 'codex', 'claude' or 'opencode'." >&2
   exit 1
   ;;
 esac
