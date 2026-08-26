@@ -16,14 +16,6 @@ fi
 
 SESSION_NAME="$1"
 
-# WITH_SKILLS is set by enter-ai-sandbox.py. When false (the default), remove
-# all built-in SKILL.md files so the AI only sees project-local skills.
-WITH_SKILLS="${WITH_SKILLS:-false}"
-if [[ "$WITH_SKILLS" != "true" ]]; then
-  find /home/claude/.agents /home/claude/.claude -name "*.md" -delete
-  find /home/claude -name "SKILL.md" -delete
-fi
-
 # AI_TOOL is set by enter-ai-sandbox.sh; default to opencode if unset.
 AI_TOOL="${AI_TOOL:-opencode}"
 

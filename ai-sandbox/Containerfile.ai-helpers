@@ -78,8 +78,6 @@ RUN --mount=type=cache,target=/var/cache/dnf,z \
 COPY reattach /usr/local/bin/reattach
 COPY ai-sandbox-entrypoint.sh /usr/local/bin/ai-sandbox-entrypoint.sh
 
-COPY generate-apm-yml.py /usr/local/bin/generate-apm-yml.py
-
 VOLUME /var/lib/containers
 VOLUME /home/claude/.local/share/containers
 
@@ -109,14 +107,6 @@ RUN mkdir -p /home/claude/.config/containers && \
     chmod -R g+rwx /workspace && \
     git clone --depth=1 https://github.com/openshift-eng/ai-helpers.git /home/claude/ai-helpers && \
     git clone --depth=1 https://github.com/googleworkspace/cli.git /home/claude/googleworkspace-cli && \
-    python3 /usr/local/bin/generate-apm-yml.py \
-        --root /home/claude/googleworkspace-cli \
-        --root /home/claude/ai-helpers \
-        --output /home/claude/apm.yml && \
-    (cd /home/claude && apm install --target claude,opencode --root /home/claude) && \
-    rm -rf /home/claude/ai-helpers /home/claude/googleworkspace-cli \
-           /home/claude/apm.yml /home/claude/apm_modules /home/claude/apm.lock.yaml && \
-    rm -rf /tmp/node-compile-cache && \
     rm -rf /home/claude/.claude/backups && \
     clear-caches
 
