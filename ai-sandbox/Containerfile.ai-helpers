@@ -17,6 +17,7 @@ COPY clear-caches /usr/local/bin/clear-caches
 RUN --mount=type=cache,target=/var/cache/dnf,z \
     --mount=type=cache,target=/var/cache/libdnf5,z \
     dnf install -y \
+        bubblewrap \
         buildah \
         cargo \
         claude-code \
