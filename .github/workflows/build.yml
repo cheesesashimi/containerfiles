@@ -1,6 +1,8 @@
 name: build
 
 on:
+  # Enables manual workflow runs
+  workflow_dispatch: {}
   schedule:
     # 7:00 AM EDT
     - cron: "0 11 * * *"
