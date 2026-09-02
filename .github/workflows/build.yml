@@ -36,19 +36,6 @@ jobs:
 
           python3 --version
           ./build-and-push-containers.py --validate-only
-      # Cribbed from: https://github.com/containers/ramalama/blob/ea05811098d17bb2d3b5e97b6e08f1897123abe2/.github/workflows/ci-images.yml#L26-L35
-      - name: Upgrade to Podman 5
-        run: |
-          set -e
-          podman version
-          # Enable universe repository which contains podman
-          sudo add-apt-repository "deb http://old-releases.ubuntu.com/ubuntu oracular universe"
-          # Update package lists
-          sudo apt-get update
-          sudo apt-get purge firefox
-          # Install specific podman version
-          sudo apt-get upgrade
-          podman version
       # Cribbed from: https://github.com/containers/ramalama/blob/ea05811098d17bb2d3b5e97b6e08f1897123abe2/.github/workflows/ci-images.yml#L49-L62
       - name: Free Disk Space Linux
         shell: bash
