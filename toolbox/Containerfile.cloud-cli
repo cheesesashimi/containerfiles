@@ -1,9 +1,23 @@
 ARG FEDORA_VERSION=44
-FROM quay.io/zzlotnik/toolbox:base-fedora-${FEDORA_VERSION} AS base
+
+FROM quay.io/fedora/fedora-toolbox:44 AS prep
+WORKDIR /usr/local/bin
+RUN curl 'https://raw.githubusercontent.com/devmatteini/dra/refs/heads/main/install.sh' | /bin/bash
+
+FROM prep AS eksctl
+WORKDIR /out
+RUN dra download -a "eksctl-io/eksctl" -o "/out/eksctl" --install-file "eksctl"
+
+FROM prep AS gws
+WORKDIR /out
+RUN dra download -a "googleworkspace/cli" -o "/out/gws" --install-file "gws"
+
+FROM quay.io/zzlotnik/toolbox:base-fedora-${FEDORA_VERSION} AS final
 COPY google-cloud-sdk.repo /etc/yum.repos.d/google-cloud-sdk.repo
 RUN --mount=type=cache,target=/var/cache/dnf,z \
   --mount=type=cache,target=/var/cache/libdnf5,z \
-  dnf install -y awscli2 google-cloud-cli nodejs && \
-  npm install -g @googleworkspace/cli && \
+  dnf install -y awscli2 google-cloud-cli opentofu && \
   find / -type d -name '__pycache__' | xargs rm -rf && \
   find / -type d -name 'node_modules/.cache' | xargs rm -rf
+COPY --from=eksctl /out/eksctl /usr/local/bin/eksctl
+COPY --from=gws /out/gws /usr/local/bin/gws
