@@ -4,7 +4,9 @@ FROM quay.io/fedora/fedora-toolbox:${FEDORA_VERSION} AS base
 FROM quay.io/zzlotnik/toolbox:tools-fetcher AS tools-fetcher
 
 FROM base AS final
-RUN dnf install -y yq && dnf clean all
+RUN --mount=type=cache,target=/var/cache/dnf,z \
+  --mount=type=cache,target=/var/cache/libdnf5,z \
+  dnf install -y yq kustomize helm
 COPY --from=tools-fetcher /usr/local/bin/dyff /usr/local/bin/
 COPY --from=tools-fetcher /usr/local/bin/k9s /usr/local/bin/k9s
 COPY --from=tools-fetcher /usr/local/bin/kubectl /usr/local/bin/kubectl
