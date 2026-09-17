@@ -5,7 +5,8 @@ COPY install.sh /tmp/install.sh
 COPY get-arch.py /usr/local/bin/get-arch
 
 FROM prep AS install
-RUN /tmp/install.sh
+RUN --mount=type=secret,id=github_token \
+  export GITHUB_TOKEN="$(cat /run/secrets/github_token)" && /tmp/install.sh
 
 FROM quay.io/zzlotnik/zacks-openshift-helpers:latest AS helpers
 

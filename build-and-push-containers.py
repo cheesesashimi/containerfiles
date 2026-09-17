@@ -42,6 +42,7 @@ class Image:
     pushspecs: str
     build_args: dict = field(default_factory=dict)
     labels: dict = field(default_factory=dict)
+    build_secrets: list = field(default_factory=list)
 
     def __post_init__(self):
         git_ref = get_git_commit_sha()
@@ -98,6 +99,10 @@ class Image:
         for key, value in self.build_args.items():
             args.append("--build-arg")
             args.append(f"{key}={value}")
+
+        for secret in self.build_secrets:
+            args.append("--secret")
+            args.append(secret)
 
         for key, value in self.labels.items():
             args.append("--label")
@@ -253,6 +258,7 @@ def main(args):
         Image(
             "tools-fetcher/Containerfile",
             ["quay.io/zzlotnik/toolbox:tools-fetcher"],
+            build_secrets=["id=github_token,env=GITHUB_TOKEN"],
         ),
         Image(
             "devex/Containerfile.epel9",
