@@ -61,7 +61,6 @@ RUN --mount=type=cache,target=/var/cache/dnf,z \
       codeburn \
       @openai/codex \
       opencode-ai && \
-    curl -sSL https://aka.ms/apm-unix | sh && \
     useradd -m -u 1000 -g 0 -s /bin/bash claude && \
     echo -e "claude:1001:65536" > /etc/subuid && \
     echo -e "claude:1001:65536" > /etc/subgid && \
@@ -108,6 +107,7 @@ RUN mkdir -p /home/claude/.config/containers && \
     git clone --depth=1 https://github.com/openshift-eng/ai-helpers.git /home/claude/ai-helpers && \
     git clone --depth=1 https://github.com/googleworkspace/cli.git /home/claude/googleworkspace-cli && \
     rm -rf /home/claude/.claude/backups && \
+    curl -sSL https://aka.ms/apm-unix | sh && \
     clear-caches
 
 # Ensure ~/.local/bin is in PATH for the entrypoint
