@@ -15,6 +15,25 @@ import tempfile
 logger = logging.getLogger(__name__)
 
 GIT_REPO = "https://github.com/cheesesashimi/containerfiles"
+MAX_OPERATION_RETRIES = 3
+
+
+def retry_operation(operation, description):
+    for attempt in range(1, MAX_OPERATION_RETRIES + 1):
+        try:
+            operation()
+            return
+        except subprocess.CalledProcessError:
+            if attempt == MAX_OPERATION_RETRIES:
+                logger.error(
+                    f"{description} failed after {MAX_OPERATION_RETRIES} attempts"
+                )
+                raise
+
+            logger.warning(
+                f"{description} failed on attempt {attempt}; "
+                f"retrying ({attempt + 1}/{MAX_OPERATION_RETRIES})"
+            )
 
 
 def get_git_commit_sha() -> str:
@@ -307,10 +326,12 @@ def main(args):
 
             for image in image_batch:
                 batch_base_images.update(image.get_base_images())
-                image.build()
+                retry_operation(image.build, f"Building {image}")
 
                 if args.authfile:
-                    image.push(args.authfile)
+                    retry_operation(
+                        lambda: image.push(args.authfile), f"Pushing {image}"
+                    )
 
                 if args.clear_images:
                     image.clear()
