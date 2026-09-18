@@ -19,6 +19,12 @@ SESSION_NAME="$1"
 # AI_TOOL is set by enter-ai-sandbox.sh; default to opencode if unset.
 AI_TOOL="${AI_TOOL:-opencode}"
 
+podman_socket="unix://$HOME/podman.sock"
+podman --config="$HOME/.docker" system service --time=0 "$podman_socket" &
+podman_service_pid="$!"
+
+export DOCKER_HOST="$podman_socket"
+
 case "$AI_TOOL" in
 codex)
   # Start tmux session running Codex
@@ -44,6 +50,7 @@ esac
 # After detaching or session ends, poll until session no longer exists
 while true; do
   if ! tmux has-session -t "$SESSION_NAME" 2>/dev/null; then
+    kill "$podman_service_pid"
     exit 0
   fi
   sleep 1

@@ -62,6 +62,7 @@ RUN --mount=type=cache,target=/var/cache/dnf,z \
       @openai/codex \
       opencode-ai && \
     useradd -m -u 1000 -g 0 -s /bin/bash claude && \
+    usermod -aG systemd-journal claude && \
     echo -e "claude:1001:65536" > /etc/subuid && \
     echo -e "claude:1001:65536" > /etc/subgid && \
     chmod u+s /usr/bin/newuidmap /usr/bin/newgidmap && \
@@ -97,7 +98,7 @@ WORKDIR /home/claude
 RUN mkdir -p /home/claude/.config/containers && \
     printf '[storage]\ndriver = "overlay"\n\n[storage.options.overlay]\nmount_program = "/usr/bin/fuse-overlayfs"\n' \
         > /home/claude/.config/containers/storage.conf && \
-    printf '[containers]\nnetns = "host"\n\n[engine]\ncgroup_manager = "cgroupfs"\nevents_logger = "file"\n' \
+    printf '[containers]\nnetns = "host"\nlog_driver = "k8s-file"\n\n[engine]\ncgroup_manager = "cgroupfs"\nevents_logger = "file"\n' \
         > /home/claude/.config/containers/containers.conf && \
     rtk init -g --auto-patch && \
     rtk init -g --auto-patch --opencode && \
