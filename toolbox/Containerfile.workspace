@@ -14,7 +14,7 @@ FROM base AS final
 ARG FEDORA_VERSION=${FEDORA_VERSION}
 RUN --mount=type=cache,target=/var/cache/dnf,z \
 	--mount=type=cache,target=/var/cache/libdnf5,z \
-	dnf copr enable -y atim/starship && \
+	dnf copr enable -y aahsnr-work/halcyon && \
 	dnf install --setopt=keepcache=True -y \
 		bat \
 		btop \
