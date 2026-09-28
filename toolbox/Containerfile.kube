@@ -1,14 +1,17 @@
 ARG FEDORA_VERSION=44
-FROM quay.io/fedora/fedora-toolbox:${FEDORA_VERSION} AS base
+FROM quay.io/zzlotnik/toolbox:base-fedora-${FEDORA_VERSION} AS base
 
 FROM quay.io/zzlotnik/toolbox:tools-fetcher AS tools-fetcher
 
 FROM base AS final
 RUN --mount=type=cache,target=/var/cache/dnf,z \
   --mount=type=cache,target=/var/cache/libdnf5,z \
-  dnf install -y yq kustomize helm kind
+  dnf install -y yq kustomize helm kind podman-remote && \
+  ln -s /usr/bin/podman-remote /usr/bin/podman && \
+  find / -name "__pycache__" -type d | xargs rm -rf
 COPY --from=tools-fetcher /usr/local/bin/dyff /usr/local/bin/
 COPY --from=tools-fetcher /usr/local/bin/k9s /usr/local/bin/k9s
 COPY --from=tools-fetcher /usr/local/bin/kubectl /usr/local/bin/kubectl
 COPY --from=tools-fetcher /usr/local/bin/oc /usr/local/bin/oc
 COPY --from=tools-fetcher /usr/local/bin/omc /usr/local/bin/omc
+ENV KIND_EXPERIMENTAL_PROVIDER=podman
