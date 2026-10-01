@@ -4,7 +4,7 @@ FROM quay.io/fedora/fedora-silverblue:${FEDORA_VERSION} AS base
 ARG FEDORA_VERSION=44
 FROM quay.io/fedora/fedora-toolbox:${FEDORA_VERSION} AS copr
 RUN --mount=type=cache,target=/var/cache/,z \
-	dnf copr enable -y aahsnr-work/halcyon
+	dnf copr enable -y shdwchn10/AllTheTools
 
 FROM quay.io/zzlotnik/toolbox:tools-fetcher AS tools-fetcher
 

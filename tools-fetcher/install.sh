@@ -4,7 +4,6 @@ set -xeuo
 
 declare -A repos=(
   ["ankitpokhrel/jira-cli"]="jira"
-  ["derailed/k9s"]=""
   ["gmeghnag/omc"]="omc"
   ["homeport/dyff"]=""
   ["twpayne/chezmoi"]=""

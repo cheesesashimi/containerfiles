@@ -14,45 +14,46 @@ FROM base AS final
 ARG FEDORA_VERSION=${FEDORA_VERSION}
 RUN --mount=type=cache,target=/var/cache/dnf,z \
 	--mount=type=cache,target=/var/cache/libdnf5,z \
-	dnf copr enable -y aahsnr-work/halcyon && \
+	dnf copr enable -y shdwchn10/AllTheTools && \
 	dnf install --setopt=keepcache=True -y \
-		bat \
-		btop \
-		butane \
-		curl \
-		delve \
-		eza \
-		fd-find \
-		fzf \
-		gh \
-		git \
-		git-delta \
-		golang \
-		golangci-lint \
-		golang-x-tools-goimports \
-		golang-x-tools-gopls \
-		gpg \
-		# Needed by the MCO
-		gpgme-devel \
-		hadolint \
-		ignition \
-		jq \
-		neovim \
-		nodejs \
-		pinentry-tty \
-		podman-remote \
-		python3 \
-		python3-lsp-server \
-		python3-neovim \
-		python3-pyyaml \
-		ripgrep \
-		shellcheck \
-		skopeo \
-		starship \
-		sqlite \
-		tmux \
-		yq \
-		zsh && \
+    bat \
+    btop \
+    butane \
+    curl \
+    delve \
+    eza \
+    fd-find \
+    fzf \
+    gh \
+    git \
+    git-delta \
+    golang \
+    golangci-lint \
+    golang-x-tools-goimports \
+    golang-x-tools-gopls \
+    gpg \
+    # Needed by the MCO
+    gpgme-devel \
+    hadolint \
+    ignition \
+    jq \
+    k9s \
+    neovim \
+    nodejs \
+    pinentry-tty \
+    podman-remote \
+    python3 \
+    python3-lsp-server \
+    python3-neovim \
+    python3-pyyaml \
+    ripgrep \
+    shellcheck \
+    skopeo \
+    starship \
+    sqlite \
+    tmux \
+    yq \
+    zsh && \
 	# Link podman-remote to podman. Combined with 'systemctl --user enable
 	# podman.socket', this allows Podman commands to be executed from
 	# within a toolbox container. TODO: Figure out how to do rootless
