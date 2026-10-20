@@ -16,8 +16,10 @@ FROM quay.io/zzlotnik/toolbox:base-fedora-${FEDORA_VERSION} AS final
 COPY google-cloud-sdk.repo /etc/yum.repos.d/google-cloud-sdk.repo
 RUN --mount=type=cache,target=/var/cache/dnf,z \
   --mount=type=cache,target=/var/cache/libdnf5,z \
-  dnf install -y awscli2 google-cloud-cli opentofu && \
+  dnf install -y awscli2 google-cloud-cli opentofu uv krb5-devel python3-devel clang krb5-workstation && \
+  uv pip install --system rh-aws-saml-login && \
   find / -type d -name '__pycache__' | xargs rm -rf && \
   find / -type d -name 'node_modules/.cache' | xargs rm -rf
 COPY --from=eksctl /out/eksctl /usr/local/bin/eksctl
 COPY --from=gws /out/gws /usr/local/bin/gws
+ENV AWS_PROFILE=saml
