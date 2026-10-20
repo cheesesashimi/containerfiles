@@ -248,10 +248,16 @@ def get_fedora_images(fedora_version):
             get_toolbox_labels("ai-helpers", fedora_version),
         ),
         Image(
-            "toolbox/Containerfile.cloud-cli",
-            [f"quay.io/zzlotnik/toolbox:cloud-cli-{tag_suffix}"],
+            "toolbox/Containerfile.cloud-cli-aws",
+            [f"quay.io/zzlotnik/toolbox:cloud-cli-aws-{tag_suffix}"],
             fedora_version_build_args,
-            get_toolbox_labels("cloud-cli", fedora_version),
+            get_toolbox_labels("cloud-cli-aws", fedora_version),
+        ),
+        Image(
+            "toolbox/Containerfile.cloud-cli-google",
+            [f"quay.io/zzlotnik/toolbox:cloud-cli-google-{tag_suffix}"],
+            fedora_version_build_args,
+            get_toolbox_labels("cloud-cli-google", fedora_version),
         ),
         Image(
             "fedora-silverblue/Containerfile",

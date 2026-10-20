@@ -1,0 +1,19 @@
+ARG FEDORA_VERSION=44
+
+FROM quay.io/fedora/fedora-toolbox:44 AS prep
+WORKDIR /usr/local/bin
+RUN curl 'https://raw.githubusercontent.com/devmatteini/dra/refs/heads/main/install.sh' | /bin/bash
+
+FROM prep AS eksctl
+WORKDIR /out
+RUN dra download -a "eksctl-io/eksctl" -o "/out/eksctl" --install-file "eksctl"
+
+FROM quay.io/zzlotnik/toolbox:base-fedora-${FEDORA_VERSION} AS final
+RUN --mount=type=cache,target=/var/cache/dnf,z \
+  --mount=type=cache,target=/var/cache/libdnf5,z \
+  dnf install -y awscli2 opentofu uv krb5-devel python3-devel clang krb5-workstation kubectl https://s3.amazonaws.com/session-manager-downloads/plugin/latest/linux_64bit/session-manager-plugin.rpm && \
+  uv pip install --system rh-aws-saml-login && \
+  find / -type d -name '__pycache__' | xargs rm -rf && \
+  find / -type d -name 'node_modules/.cache' | xargs rm -rf
+COPY --from=eksctl /out/eksctl /usr/local/bin/eksctl
+ENV AWS_PROFILE=saml
