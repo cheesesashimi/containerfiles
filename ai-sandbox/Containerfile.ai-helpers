@@ -60,7 +60,7 @@ RUN --mount=type=cache,target=/var/cache/dnf,z \
       @googleworkspace/cli \
       codeburn \
       @openai/codex \
-      opencode-ai && \
+      @opencode/cli && \
     useradd -m -u 1000 -g 0 -s /bin/bash claude && \
     usermod -aG systemd-journal claude && \
     echo -e "claude:1001:65536" > /etc/subuid && \
