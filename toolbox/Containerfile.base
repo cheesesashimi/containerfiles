@@ -3,6 +3,8 @@ FROM quay.io/fedora/fedora-toolbox:${FEDORA_VERSION}
 RUN --mount=type=cache,target=/var/cache/dnf,z \
 	--mount=type=cache,target=/var/cache/libdnf5,z \
 	dnf copr enable -y shdwchn10/AllTheTools && \
+	dnf install --setopt=keepcache=True -y starship && \
+	dnf copr disable -y shdwchn10/AllTheTools && \
 	dnf install --setopt=keepcache=True -y \
 		bat \
 		curl \
@@ -17,7 +19,6 @@ RUN --mount=type=cache,target=/var/cache/dnf,z \
 		pinentry-tty \
 		ripgrep \
 		skopeo \
-		starship \
 		tmux \
 		yq \
 		zsh && \

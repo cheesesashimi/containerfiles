@@ -1,11 +1,6 @@
 ARG FEDORA_VERSION=44
 FROM quay.io/fedora/fedora-silverblue:${FEDORA_VERSION} AS base
 
-ARG FEDORA_VERSION=44
-FROM quay.io/fedora/fedora-toolbox:${FEDORA_VERSION} AS copr
-RUN --mount=type=cache,target=/var/cache/,z \
-	dnf copr enable -y shdwchn10/AllTheTools
-
 FROM quay.io/zzlotnik/toolbox:tools-fetcher AS tools-fetcher
 
 ARG FEDORA_VERSION=44
@@ -13,59 +8,60 @@ FROM quay.io/fedora/fedora:${FEDORA_VERSION} AS font-fetcher
 COPY --from=tools-fetcher /usr/local/bin/dra /usr/local/bin/dra
 WORKDIR /usr/share/fonts/IBMPlexMono
 RUN dra download -s "IBMPlexMono.tar.xz" ryanoasis/nerd-fonts && \
-	tar -xvf IBMPlexMono.tar.xz --wildcards "*.ttf" && \
-	rm IBMPlexMono.tar.xz
+  tar -xvf IBMPlexMono.tar.xz --wildcards "*.ttf" && \
+  rm IBMPlexMono.tar.xz
 
 FROM quay.io/zzlotnik/hotdogcart:latest AS hotdogcart
 
 FROM base AS final
-COPY --from=copr /etc/yum.repos.d/_copr* /etc/yum.repos.d/
 COPY --from=hotdogcart /hotdogcart /usr/bin/hotdogcart
 COPY --from=font-fetcher /usr/share/fonts/IBMPlexMono /usr/share/fonts/IBMPlexMono
 COPY setup-virt-manager.sh /usr/bin/setup-virt-manager
-RUN --mount=type=cache,target=/var/cache/rpm-ostree,z \
-	--mount=type=cache,target=/var/cache/libdnf5,z \
-	chmod +x /usr/bin/setup-virt-manager && \
-	chown -R root:root /usr/share/fonts/IBMPlexMono && \
-	chmod -R 0644 /usr/share/fonts/IBMPlexMono && \
-	rpm-ostree install -y \
-		# Needed for non-free ffmpeg packages.
-		https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm \
-		https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm \
-		bat \
-		btop \
-		curl \
-		eza \
-		fd-find \
-		fzf \
-		git \
-		git-delta \
-		jq \
-		langpacks-en \
-		# One of my zsh plugins needs lua. I don't know why or what the plugin does, but I will humor it for now.
-		kitty \
-		lua \
-		nvtop \
-		# Ramalama wants to be on the host instead of in a container, which makes
-		# sense because it manages containers.
-		python3-ramalama \
-		# qflipper cannot be run from a toolbox container
-		qflipper \
-		ripgrep \
-		skopeo \
-		starship \
-		tmux \
-		virt-manager \
-		yq \
-		zsh && \
-	# Not removing these files prevents the eza alias from working
-	rm /etc/profile.d/color*.csh /etc/profile.d/color*.sh && \
-	# Replace ffmpeg-free with ffmpeg from RPMFusion.
-	dnf swap -y ffmpeg-free ffmpeg --allowerasing && \
-	# There is some additional post-installation setup that needs to be done for
-	# virt-manager to work. However, much of that takes place in /etc and /var,
-	# which we cannot preemptively do here. That is the purpose of the
-	# setup-virt-manager script above. However, we can at least enable the
-	# systemd services that virt-manager relies upon.
-	systemctl enable virtlogd virtnetworkd virtqemud virtstoraged && \
-	bootc container lint
+RUN --mount=type=cache,target=/var/cache/libdnf5,z \
+  --mount=type=cache,target=/var/cache/dnf,z \
+  chmod +x /usr/bin/setup-virt-manager && \
+  chown -R root:root /usr/share/fonts/IBMPlexMono && \
+  chmod -R 0644 /usr/share/fonts/IBMPlexMono && \
+  dnf copr enable -y shdwchn10/AllTheTools && \
+  dnf install -y starship && \
+  dnf copr disable -y shdwchn10/AllTheTools && \
+  dnf install -y \
+    # Needed for non-free ffmpeg packages.
+    https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm \
+    https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm \
+    bat \
+    btop \
+    curl \
+    eza \
+    fd-find \
+    fzf \
+    git \
+    git-delta \
+    jq \
+    langpacks-en \
+    # One of my zsh plugins needs lua. I don't know why or what the plugin does, but I will humor it for now.
+    kitty \
+    lua \
+    nvtop \
+    # Ramalama wants to be on the host instead of in a container, which makes
+    # sense because it manages containers.
+    python3-ramalama \
+    # qflipper cannot be run from a toolbox container
+    qflipper \
+    ripgrep \
+    skopeo \
+    tmux \
+    virt-manager \
+    yq \
+    zsh && \
+  # Not removing these files prevents the eza alias from working
+  rm /etc/profile.d/color*.csh /etc/profile.d/color*.sh && \
+  # Replace ffmpeg-free with ffmpeg from RPMFusion.
+  dnf swap -y ffmpeg-free ffmpeg --allowerasing && \
+  # There is some additional post-installation setup that needs to be done for
+  # virt-manager to work. However, much of that takes place in /etc and /var,
+  # which we cannot preemptively do here. That is the purpose of the
+  # setup-virt-manager script above. However, we can at least enable the
+  # systemd services that virt-manager relies upon.
+  systemctl enable virtlogd virtnetworkd virtqemud virtstoraged && \
+  bootc container lint

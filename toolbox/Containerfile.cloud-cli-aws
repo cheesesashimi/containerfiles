@@ -18,7 +18,7 @@ RUN --mount=type=cache,target=/var/cache/dnf,z \
     k9s \
     krb5-devel \
     krb5-workstation \
-    kubectl \
+    kubernetes1.37-client \
     opentofu \
     python3-devel \
     uv \

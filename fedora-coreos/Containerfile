@@ -1,34 +1,30 @@
 ARG FEDORA_VERSION=44
 FROM quay.io/fedora/fedora-coreos:stable AS base
 
-ARG FEDORA_VERSION=44
-FROM quay.io/fedora/fedora-toolbox:${FEDORA_VERSION} AS copr
-RUN --mount=type=cache,target=/var/cache/,z \
-	dnf copr enable -y shdwchn10/AllTheTools
-
 FROM base AS final
-COPY --from=copr /etc/yum.repos.d/_copr* /etc/yum.repos.d/
-RUN --mount=type=cache,target=/var/cache/rpm-ostree,z \
-	rpm-ostree install -y \
-		bat \
-		btop \
-		curl \
-		eza \
-		fd-find \
-		fzf \
-		git \
-		git-delta \
-		jq \
-		langpacks-en \
-		# One of my zsh plugins needs lua. I don't know why or what the plugin does, but I will humor it for now.
-		lua \
-		nvtop \
-		ripgrep \
-		skopeo \
-		starship \
-		tmux \
-		yq \
-		zsh && \
-	# Not removing these files prevents the eza alias from working
-	rm /etc/profile.d/color*.csh /etc/profile.d/color*.sh && \
-	ostree container commit
+RUN --mount=type=cache,target=/var/cache/dnf,z \
+  dnf copr enable -y shdwchn10/AllTheTools && \
+  dnf install -y starship && \
+  dnf copr disable -y shdwchn10/AllTheTools && \
+  dnf install -y \
+    bat \
+    btop \
+    curl \
+    eza \
+    fd-find \
+    fzf \
+    git \
+    git-delta \
+    jq \
+    langpacks-en \
+    # One of my zsh plugins needs lua. I don't know why or what the plugin does, but I will humor it for now.
+    lua \
+    nvtop \
+    ripgrep \
+    skopeo \
+    tmux \
+    yq \
+    zsh && \
+  # Not removing these files prevents the eza alias from working
+  rm /etc/profile.d/color*.csh /etc/profile.d/color*.sh && \
+  ostree container commit
