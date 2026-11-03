@@ -261,8 +261,8 @@ def get_fedora_images(fedora_version):
         ),
         Image(
             "fedora-silverblue/Containerfile",
-            [f"quay.io/zzlotnik/os-images:fedora-silverblue-{fedora_version}"],
-            fedora_version_build_args,
+            [f"quay.io/zzlotnik/os-images:fedora-silverblue-44"],
+            {"FEDORA_VERSION": "44"},
         ),
     ]
 
@@ -297,15 +297,11 @@ def main(args):
             "ocp-ssh-debug/Containerfile",
             ["quay.io/zzlotnik/testing:ssh-debug-pod"],
         ),
-        Image(
-            "other/Containerfile.lazyvim",
-            ["quay.io/zzlotnik/testing:lazyvim"],
-        ),
     ]
 
     image_batches = [
         standalone_images,
-        get_fedora_images("44"),
+        get_fedora_images("45"),
     ]
 
     for image_batch in image_batches:

@@ -1,4 +1,4 @@
-ARG FEDORA_VERSION=44
+ARG FEDORA_VERSION=45
 FROM quay.io/fedora/fedora-toolbox:${FEDORA_VERSION}
 RUN --mount=type=cache,target=/var/cache/dnf,z \
 	--mount=type=cache,target=/var/cache/libdnf5,z \

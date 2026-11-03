@@ -1,6 +1,6 @@
-ARG FEDORA_VERSION=44
+ARG FEDORA_VERSION=45
 
-FROM quay.io/fedora/fedora-toolbox:44 AS prep
+FROM quay.io/fedora/fedora-toolbox:45 AS prep
 WORKDIR /usr/local/bin
 RUN curl 'https://raw.githubusercontent.com/devmatteini/dra/refs/heads/main/install.sh' | /bin/bash
 
