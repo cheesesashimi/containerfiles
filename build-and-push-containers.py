@@ -264,6 +264,11 @@ def get_fedora_images(fedora_version):
             [f"quay.io/zzlotnik/os-images:fedora-silverblue-44"],
             {"FEDORA_VERSION": "44"},
         ),
+        Image(
+            "fedora-silverblue/Containerfile",
+            [f"quay.io/zzlotnik/os-images:fedora-silverblue-45"],
+            {"FEDORA_VERSION": "45"},
+        ),
     ]
 
 
