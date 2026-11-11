@@ -14,10 +14,13 @@ FROM base AS final
 ARG FEDORA_VERSION=${FEDORA_VERSION}
 RUN --mount=type=cache,target=/var/cache/dnf,z \
 	--mount=type=cache,target=/var/cache/libdnf5,z \
-	dnf copr enable -y shdwchn10/AllTheTools && \
-	dnf install --setopt=keepcache=True -y starship && \
-	dnf copr disable -y shdwchn10/AllTheTools && \
-	dnf install --setopt=keepcache=True -y \
+  dnf copr enable -y shdwchn10/AllTheTools && \
+  dnf install --setopt=keepcache=True -y starship && \
+  dnf copr disable -y shdwchn10/AllTheTools && \
+  dnf config-manager addrepo --from-repofile=https://acli.atlassian.com/linux/rpm/acli.repo && \
+  dnf install --setopt=keepcache=True -y acli && \
+  rm /etc/yum.repos.d/acli.repo && \
+  dnf install --setopt=keepcache=True -y \
     bat \
     btop \
     butane \
