@@ -1,5 +1,5 @@
 FROM quay.io/fedora/fedora:45 AS final
 RUN --mount=type=cache,target=/var/cache/dnf,z \
-  --mount=type=cache,target=/var/cache/libdnf5,z \
-  dnf install -y --setopt=keepcache=True openssh-clients yq && \
-  find / -type d -name '__pycache__' | xargs rm -rf
+    --mount=type=cache,target=/var/cache/libdnf5,z \
+    dnf install -y --setopt=keepcache=True openssh-clients yq && \
+    find / -type d -name '__pycache__' | xargs rm -rf

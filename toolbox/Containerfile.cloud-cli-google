@@ -11,8 +11,8 @@ RUN dra download -a "googleworkspace/cli" -o "/out/gws" --install-file "gws"
 FROM quay.io/zzlotnik/toolbox:base-fedora-${FEDORA_VERSION} AS final
 COPY google-cloud-sdk.repo /etc/yum.repos.d/google-cloud-sdk.repo
 RUN --mount=type=cache,target=/var/cache/dnf,z \
-  --mount=type=cache,target=/var/cache/libdnf5,z \
-  dnf install -y google-cloud-cli && \
-  find / -type d -name '__pycache__' | xargs rm -rf && \
-  find / -type d -name 'node_modules/.cache' | xargs rm -rf
+    --mount=type=cache,target=/var/cache/libdnf5,z \
+    dnf install -y google-cloud-cli && \
+    find / -type d -name '__pycache__' | xargs rm -rf && \
+    find / -type d -name 'node_modules/.cache' | xargs rm -rf
 COPY --from=gws /out/gws /usr/local/bin/gws

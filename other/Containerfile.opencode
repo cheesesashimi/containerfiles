@@ -14,16 +14,16 @@ ENV HOME=/home/opencode
 # We use dnf clean all to keep the system layer slim
 RUN dnf -y update && \
     dnf -y install \
-    curl \
-    tar \
-    python3 \
-    python3-pip \
-    python3-devel \
-    nodejs \
-    npm \
-    gcc \
-    gcc-c++ \
-    make && \
+        curl \
+        tar \
+        python3 \
+        python3-pip \
+        python3-devel \
+        nodejs \
+        npm \
+        gcc \
+        gcc-c++ \
+        make && \
     dnf clean all && \
     find / -type d -name '__pycache__' | xargs rm -rf && \
     find / -type d -name 'node_modules/.cache' | xargs rm -rf

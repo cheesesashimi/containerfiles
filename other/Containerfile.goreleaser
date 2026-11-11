@@ -5,10 +5,10 @@ FROM base AS final
 ARG FEDORA_VERSION=${FEDORA_VERSION}
 COPY ./goreleaser.repo /etc/yum.repos.d/goreleaser.repo
 RUN --mount=type=cache,target=/var/cache/dnf,z \
-	dnf install --setopt=keepcache=True -y \
-		docker \
-		goreleaser \
-		golang \
-		golangci-lint \
-		make \
-		python3
+    dnf install --setopt=keepcache=True -y \
+    docker \
+    goreleaser \
+    golang \
+    golangci-lint \
+    make \
+    python3

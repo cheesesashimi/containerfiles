@@ -5,7 +5,7 @@ ARG FEDORA_VERSION=44
 FROM docker.io/library/golang:latest AS build-mcp-server
 WORKDIR /mcp-server
 RUN git clone --depth=1 https://github.com/shivprakashmuley/mustgather-mcp-server.git . && \
-  go build -o /mcp-server/mustgather-mcp-server
+    go build -o /mcp-server/mustgather-mcp-server
 
 ARG FEDORA_VERSION=44
 FROM quay.io/fedora/fedora:${FEDORA_VERSION} AS fetch-omc

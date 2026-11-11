@@ -3,4 +3,4 @@
 ARG FEDORA_VERSION=44
 FROM quay.io/zzlotnik/toolbox:base-fedora-${FEDORA_VERSION}
 RUN --mount=type=cache,target=/var/cache/dnf,z \
-  dnf install -y --setopt=keepcache=True docker
+    dnf install -y --setopt=keepcache=True docker
