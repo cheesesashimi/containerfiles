@@ -5,7 +5,8 @@ on:
   workflow_dispatch: {}
   schedule:
     # 7:00 AM EDT
-    - cron: "0 11 * * *"
+    - cron: "0 7 * * *"
+      timezone: "America/New_York"
   push:
     branches:
       - "main"
